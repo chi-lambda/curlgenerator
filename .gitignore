@@ -400,3 +400,6 @@ FodyWeavers.xsd
 test/Generated/
 test/openapi.json
 test/openapi.yaml
+
+# VS Code configuration directory
+.vscode/
