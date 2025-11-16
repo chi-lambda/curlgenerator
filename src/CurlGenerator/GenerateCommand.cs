@@ -16,13 +16,28 @@ public class GenerateCommand : AsyncCommand<Settings>
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
         if (!settings.NoLogging)
-            Analytics.Configure();        try
+        {
+            Analytics.Configure();
+        }
+        try
         {
             var stopwatch = Stopwatch.StartNew();
-            
+
+            if (string.IsNullOrEmpty(settings.OpenApiPath))
+            {
+                AnsiConsole.MarkupLine($"{Crlf}[red]Error:{Crlf}No OpenAPI file specified.[/]");
+                return 1;
+            }
+
+            if (!File.Exists(settings.OpenApiPath))
+            {
+                AnsiConsole.MarkupLine($"{Crlf}[red]Error:{Crlf}OpenAPI {settings.OpenApiPath} does not exist .[/]");
+                return 1;
+            }
+
             // Display improved header
             DisplayHeader(settings);
-            
+
             // Display configuration
             DisplayConfiguration(settings);
 
@@ -37,14 +52,15 @@ public class GenerateCommand : AsyncCommand<Settings>
                 OpenApiPath = settings.OpenApiPath,
                 ContentType = settings.ContentType,
                 BaseUrl = settings.BaseUrl,
-                GenerateBashScripts = settings.GenerateBashScripts
+                GenerateBashScripts = settings.GenerateBashScripts,
+                SkipCertificateCheck = settings.SkipCertificateCheck
             };
 
             var result = await ScriptFileGenerator.Generate(generatorSettings);
             await Analytics.LogFeatureUsage(settings);
 
             if (!string.IsNullOrWhiteSpace(settings.OutputFolder) && !Directory.Exists(settings.OutputFolder))
-                Directory.CreateDirectory(settings.OutputFolder);            await Task.WhenAll(
+                Directory.CreateDirectory(settings.OutputFolder); await Task.WhenAll(
                 result.Files.Select(
                     file => File.WriteAllTextAsync(
                         Path.Combine(settings.OutputFolder, file.Filename),
@@ -72,7 +88,7 @@ public class GenerateCommand : AsyncCommand<Settings>
                 // Escape markup characters in exception messages
                 var escapedMessage = exception.Message.Replace("[", "[[").Replace("]", "]]");
                 var escapedStackTrace = exception.StackTrace?.Replace("[", "[[").Replace("]", "]]") ?? "";
-                
+
                 AnsiConsole.MarkupLine($"{Crlf}[red]Error:{Crlf}{escapedMessage}[/]");
                 AnsiConsole.MarkupLine($"[red]Exception:{Crlf}{exception.GetType()}[/]");
                 AnsiConsole.MarkupLine($"[yellow]Stack Trace:{Crlf}{escapedStackTrace}[/]");
@@ -90,7 +106,8 @@ public class GenerateCommand : AsyncCommand<Settings>
              string.IsNullOrWhiteSpace(settings.AzureTenantId)))
         {
             return;
-        }        try
+        }
+        try
         {
             AnsiConsole.MarkupLine("[green]🔐 Acquiring authorization header from Azure Entra ID...[/]");
             using var listener = AzureEventSourceListener.CreateConsoleLogger();
@@ -130,10 +147,12 @@ public class GenerateCommand : AsyncCommand<Settings>
                 TryWriteLine(warning, "yellow", "Warning");
             }
 
-            validationResult.ThrowIfInvalid();        }
+            validationResult.ThrowIfInvalid();
+        }
 
         DisplayOpenApiStatistics(validationResult.Statistics);
-    }    private static void DisplayOpenApiStatistics(OpenApiStats statistics)
+    }
+    private static void DisplayOpenApiStatistics(OpenApiStats statistics)
     {
         var statsTable = new Table()
             .BorderColor(Color.Blue)
@@ -178,17 +197,17 @@ public class GenerateCommand : AsyncCommand<Settings>
         // Create a fancy header panel
         var version = typeof(GenerateCommand).Assembly.GetName().Version!.ToString();
         var headerText = new Text($"🔧 cURL Request Generator v{version}", new Style(Color.Green, decoration: Decoration.Bold));
-        
+
         var panel = new Panel(headerText)
             .BorderColor(Color.Green)
             .Padding(1, 0)
             .Expand();
-            
+
         AnsiConsole.Write(panel);
         AnsiConsole.WriteLine();
-        
+
         // Support key info
-        var supportKey = settings.NoLogging 
+        var supportKey = settings.NoLogging
             ? "[yellow]⚠️  Unavailable when logging is disabled[/]"
             : $"[green]🔑 Support key: {SupportInformation.GetSupportKey()}[/]";
         AnsiConsole.MarkupLine(supportKey);
@@ -205,20 +224,20 @@ public class GenerateCommand : AsyncCommand<Settings>
         configTable.AddRow("📁 OpenAPI Source", $"[cyan]{settings.OpenApiPath}[/]");
         configTable.AddRow("📂 Output Folder", $"[cyan]{settings.OutputFolder}[/]");
         configTable.AddRow("🌐 Content Type", $"[cyan]{settings.ContentType}[/]");
-        
+
         if (!string.IsNullOrWhiteSpace(settings.BaseUrl))
             configTable.AddRow("🔗 Base URL", $"[cyan]{settings.BaseUrl}[/]");
-            
+
         if (settings.GenerateBashScripts)
             configTable.AddRow("🐚 Bash Scripts", "[green]✓ Enabled[/]");
-            
+
         if (settings.SkipValidation)
             configTable.AddRow("⚠️  Validation", "[yellow]⚠️  Skipped[/]");
 
         if (!string.IsNullOrWhiteSpace(settings.AuthorizationHeader))
         {
-            var authHeader = settings.AuthorizationHeader.Length > 50 
-                ? settings.AuthorizationHeader[..47] + "..." 
+            var authHeader = settings.AuthorizationHeader.Length > 50
+                ? settings.AuthorizationHeader[..47] + "..."
                 : settings.AuthorizationHeader;
             configTable.AddRow("🔐 Authorization", $"[dim]{authHeader}[/]");
         }
@@ -272,7 +291,7 @@ public class GenerateCommand : AsyncCommand<Settings>
                 .BorderColor(Color.Yellow)
                 .Padding(1, 0));
         }
-        
+
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold green]🎉 Done![/]");
     }
