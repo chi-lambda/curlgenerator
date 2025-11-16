@@ -29,7 +29,7 @@ public class GenerateCommand : AsyncCommand<Settings>
                 return 1;
             }
 
-            if (!File.Exists(settings.OpenApiPath))
+            if (!settings.OpenApiPath.StartsWith("http") && !File.Exists(settings.OpenApiPath))
             {
                 AnsiConsole.MarkupLine($"{Crlf}[red]Error:{Crlf}OpenAPI {settings.OpenApiPath} does not exist .[/]");
                 return 1;
