@@ -101,6 +101,12 @@ public static class ScriptFileGenerator
         var queryString = queryParams.Any() ? $"?{string.Join("&", queryParams)}" : string.Empty;
         code.AppendLine($"curl -X {verb.ToUpperInvariant()} \"{baseUrl}{route}{queryString}\" \\");
 
+        if (settings.SkipCertificateCheck)
+        {
+            code.AppendLine("  -k \\");
+        }
+
+
         code.AppendLine($"  -H \"Accept: application/json\" \\");
 
         // Determine content type based on request body
@@ -369,6 +375,10 @@ public static class ScriptFileGenerator
         }
 
         code.AppendLine($"curl -X {verb.ToUpperInvariant()} {baseUrl}{url} `");
+        if (settings.SkipCertificateCheck)
+        {
+            code.AppendLine("  -k `");
+        }
 
         code.AppendLine($"  -H 'Accept: {settings.ContentType}' `");
         code.AppendLine($"  -H 'Content-Type: {settings.ContentType}' `");

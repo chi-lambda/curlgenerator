@@ -51,4 +51,8 @@ public class Settings : CommandSettings
     [Description("Azure Entra ID Tenant ID to use for retrieving Access Token for Authorization header")]
     [CommandOption("--azure-tenant-id <TENANT-ID>")]
     public string? AzureTenantId { get; set; }
+
+    [Description("Skip certificate check")]
+    [CommandOption("-k|--insecure")]
+    public bool SkipCertificateCheck{ get; set; }
 }
