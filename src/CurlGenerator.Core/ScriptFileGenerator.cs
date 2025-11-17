@@ -123,24 +123,48 @@ public static class ScriptFileGenerator
 
         if (operation.RequestBody?.Content != null)
         {
-            if (contentType == "application/x-www-form-urlencoded" || contentType == "multipart/form-data")
+            if (settings.ReadBodyFromStdin)
             {
-                var formData = operation.RequestBody.Content[contentType].Schema.Properties
-                    .Select(p => $"-F \"{p.Key}=${{{p.Key}}}\"");
-                foreach (var formField in formData)
+                switch (contentType)
                 {
-                    code.AppendLine(formField + " \\");
+                    case "application/octet-stream":
+                        code.AppendLine($"  --data-binary @-");
+                        break;
+                    default:
+                        var requestBodySchema = operation.RequestBody.Content[contentType].Schema;
+                        var requestBodyJson = GenerateSampleJsonFromSchema(requestBodySchema);
+                        code.AppendLine($"  -d@-");
+                        break;
                 }
-            }
-            else if (contentType == "application/octet-stream")
-            {
-                code.AppendLine($"  --data-binary '@filename'");
             }
             else
             {
-                var requestBodySchema = operation.RequestBody.Content[contentType].Schema;
-                var requestBodyJson = GenerateSampleJsonFromSchema(requestBodySchema);
-                code.AppendLine($"  -d '{requestBodyJson}'");
+                switch (contentType)
+                {
+                    case "application/x-www-form-urlencoded":
+                    case "multipart/form-data":
+                        {
+                            var formData = operation.RequestBody.Content[contentType].Schema.Properties
+                                .Select(p => $"-F \"{p.Key}=${{{p.Key}}}\"");
+                            foreach (var formField in formData)
+                            {
+                                code.AppendLine(formField + " \\");
+                            }
+
+                            break;
+                        }
+
+                    case "application/octet-stream":
+                        code.AppendLine($"  --data-binary '@filename'");
+                        break;
+                    default:
+                        {
+                            var requestBodySchema = operation.RequestBody.Content[contentType].Schema;
+                            var requestBodyJson = GenerateSampleJsonFromSchema(requestBodySchema);
+                            code.AppendLine($"  -d '{requestBodyJson}'");
+                            break;
+                        }
+                }
             }
         }
         else

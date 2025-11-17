@@ -53,7 +53,8 @@ public class GenerateCommand : AsyncCommand<Settings>
                 ContentType = settings.ContentType,
                 BaseUrl = settings.BaseUrl,
                 GenerateBashScripts = settings.GenerateBashScripts,
-                SkipCertificateCheck = settings.SkipCertificateCheck
+                SkipCertificateCheck = settings.SkipCertificateCheck,
+                ReadBodyFromStdin = settings.ReadBodyFromStdin
             };
 
             var result = await ScriptFileGenerator.Generate(generatorSettings);

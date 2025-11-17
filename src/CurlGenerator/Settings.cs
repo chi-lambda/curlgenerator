@@ -54,5 +54,9 @@ public class Settings : CommandSettings
 
     [Description("Skip certificate check")]
     [CommandOption("-k|--insecure")]
-    public bool SkipCertificateCheck{ get; set; }
+    public bool SkipCertificateCheck { get; set; }
+
+    [Description("Read body from standard input")]
+    [CommandOption("-i|--stdin")]
+    public bool ReadBodyFromStdin{ get; set; }
 }

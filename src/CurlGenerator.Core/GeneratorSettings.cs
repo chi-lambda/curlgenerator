@@ -12,12 +12,12 @@ public class GeneratorSettings
     /// Gets or sets the path to the Open API (local file or URL)
     /// </summary>
     public string OpenApiPath { get; set; } = null!;
-    
+
     /// <summary>
     /// Gets or sets the authorization header to use for all requests
     /// </summary>
     public string? AuthorizationHeader { get; set; }
-    
+
     /// <summary>
     /// Gets or sets the default Content-Type header to use for all requests
     /// </summary>
@@ -27,7 +27,7 @@ public class GeneratorSettings
     /// Gets or sets the default BaseUrl to use for all requests
     /// </summary>
     public string? BaseUrl { get; set; }
-    
+
     /// <summary>
     /// Gets or sets a value indicating whether to generate bash scripts.
     /// </summary>
@@ -36,5 +36,10 @@ public class GeneratorSettings
     /// <summary>
     /// Gets or sets a value indicating whether to skip the certificate check in curl.
     /// </summary>
-    public bool SkipCertificateCheck{ get; set; }
+    public bool SkipCertificateCheck { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to read the message body from standard input.
+    /// </summary>
+    public bool ReadBodyFromStdin { get; set; }
 }
