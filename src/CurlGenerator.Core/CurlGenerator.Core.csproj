@@ -8,6 +8,7 @@
     <RootNamespace>CurlGenerator.Core</RootNamespace>
     <Product>CurlGenerator Core</Product>
     <Description>Core Library used by the cURL Request Generator CLI tool for generating cURL requests from OpenAPI specifications</Description>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
