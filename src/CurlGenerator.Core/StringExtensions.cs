@@ -6,16 +6,9 @@ public static class StringExtensions
 {
     public static string ConvertKebabCaseToPascalCase(this string str)
     {
-        var parts = str.Split('-');
-
-        for (var i = 0; i < parts.Length; i++)
-        {
-            parts[i] = parts[i].CapitalizeFirstCharacter().Replace(".", "_");
-        }
-
-        return string.Join(string.Empty, parts);
+        return string.Concat(str.Split('-').Select(s => s.CapitalizeFirstCharacter().Replace(".", "_")));
     }
-    
+
     public static string ConvertKebabCaseToSnakeCase(this string str)
     {
         return str.Replace("-", "_").ToLowerInvariant();
@@ -23,38 +16,21 @@ public static class StringExtensions
 
     public static string ConvertRouteToCamelCase(this string str)
     {
-        var parts = str.Split('/');
-        for (var i = 1; i < parts.Length; i++)
-        {
-            parts[i] = parts[i].CapitalizeFirstCharacter();
-        }
-
-        return string.Join(string.Empty, parts);
+        return string.Concat(str.Split('/', StringSplitOptions.RemoveEmptyEntries).Select(CapitalizeFirstCharacter));
     }
 
     public static string CapitalizeFirstCharacter(this string str)
     {
-        return str.Substring(0, 1).ToUpperInvariant() +
-               str.Substring(1, str.Length - 1);
+        return str[0..1].ToUpperInvariant() + str[1..];
     }
 
     public static string ConvertSpacesToPascalCase(this string str)
     {
-        var parts = str.Split(' ');
-        for (var i = 0; i < parts.Length; i++)
-        {
-            parts[i] = parts[i].CapitalizeFirstCharacter();
-        }
-
-        return string.Join(string.Empty, parts);
+        return string.Concat(str.Split(' ').Select(CapitalizeFirstCharacter));
     }
 
     public static string Prefix(this string str, string prefix)
     {
-        if (str.StartsWith(prefix))
-        {
-            return str;
-        }
-        return prefix + str;
+        return str.StartsWith(prefix) ? str : prefix + str;
     }
 }
