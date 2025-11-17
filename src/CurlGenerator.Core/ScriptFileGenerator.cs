@@ -379,23 +379,21 @@ public static class ScriptFileGenerator
         var parameterNameMap = AppendParameters(verb, kv, operation, code);
 
         var url = kv.Key.Replace("{", "$").Replace("}", null);
-        if (!settings.GenerateBashScripts)
+
+        if (parameterNameMap.Count > 0)
         {
-            if (parameterNameMap.Count > 0)
-            {
-                url += "?";
-            }
+            url += "?";
+        }
 
-            foreach (var parameterName in parameterNameMap)
-            {
-                var value = parameterName.Value.ConvertKebabCaseToSnakeCase();
-                url += $"{parameterName.Key}=${value}&";
-            }
+        foreach (var parameterName in parameterNameMap)
+        {
+            var value = parameterName.Value.ConvertKebabCaseToSnakeCase();
+            url += $"{parameterName.Key}=${value}&";
+        }
 
-            if (parameterNameMap.Count > 0)
-            {
-                url = url.Remove(url.Length - 1);
-            }
+        if (parameterNameMap.Count > 0)
+        {
+            url = url.Remove(url.Length - 1);
         }
 
         code.AppendLine($"curl -X {verb.ToUpperInvariant()} {baseUrl}{url} `");
