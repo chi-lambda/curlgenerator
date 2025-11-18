@@ -1,4 +1,6 @@
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.OpenApi.Models;
 
 namespace CurlGenerator.Core;
@@ -7,6 +9,11 @@ public abstract class ScriptFileGenerator
 {
     protected static readonly string LogFilePath = "generator.log";
     protected abstract string FileExtension { get; }
+    private static readonly JsonSerializerOptions jsonOptions = new()
+    {
+        ReferenceHandler = ReferenceHandler.Preserve,
+        WriteIndented = true
+    };
 
     public async Task<GeneratorResult> Generate(GeneratorSettings settings)
     {
@@ -81,12 +88,7 @@ public abstract class ScriptFileGenerator
     {
         try
         {
-            var settings = new Newtonsoft.Json.JsonSerializerSettings
-            {
-                ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore,
-                Formatting = Newtonsoft.Json.Formatting.Indented
-            };
-            return Newtonsoft.Json.JsonConvert.SerializeObject(obj, settings);
+            return JsonSerializer.Serialize(obj, jsonOptions);
         }
         catch
         {
@@ -102,7 +104,7 @@ public abstract class ScriptFileGenerator
         try
         {
             var sampleObject = GenerateSampleObjectFromSchema(schema);
-            return Newtonsoft.Json.JsonConvert.SerializeObject(sampleObject, Newtonsoft.Json.Formatting.Indented);
+            return JsonSerializer.Serialize(sampleObject, jsonOptions);
         }
         catch
         {
