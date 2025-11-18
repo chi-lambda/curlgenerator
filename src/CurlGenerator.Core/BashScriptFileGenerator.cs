@@ -74,12 +74,21 @@ public class BashScriptFileGenerator : ScriptFileGenerator
                     case "multipart/form-data":
                         {
                             var formData = operation.RequestBody.Content[contentType].Schema.Properties
-                                .Select(p => $"-F \"{p.Key}=${{{p.Key}}}\"");
-                            foreach (var formField in formData)
-                            {
-                                code.AppendLine(formField + " \\");
-                            }
+                                .Select(p => $"-F \"{p.Key}=${{{p.Key}}}\"")
+                                .ToList();
 
+                            for (int i = 0; i < formData.Count; i++)
+                            {
+                                // Only add trailing backslash if not the last item
+                                if (i < formData.Count - 1)
+                                {
+                                    code.AppendLine(formData[i] + " \\");
+                                }
+                                else
+                                {
+                                    code.AppendLine(formData[i]);
+                                }
+                            }
                             break;
                         }
 
@@ -87,12 +96,14 @@ public class BashScriptFileGenerator : ScriptFileGenerator
                         code.AppendLine($"  --data-binary '@filename'");
                         break;
                     default:
+                        // Remove the trailing backslash and newline if there is no request body
+                        var currentCode = code.ToString();
+                        if (currentCode.EndsWith(" \\\n") || currentCode.EndsWith(" \\\r\n"))
                         {
-                            var requestBodySchema = operation.RequestBody.Content[contentType].Schema;
-                            var requestBodyJson = GenerateSampleJsonFromSchema(requestBodySchema);
-                            code.AppendLine($"  -d '{requestBodyJson}'");
-                            break;
+                            code.Length -= (currentCode.EndsWith("\r\n") ? 4 : 3); // Remove " \\\n" or " \\\r\n"
+                            code.AppendLine(); // Add back just the newline
                         }
+                        break;
                 }
             }
         }

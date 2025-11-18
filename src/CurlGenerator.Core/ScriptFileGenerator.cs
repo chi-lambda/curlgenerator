@@ -1,11 +1,12 @@
-﻿using System.Text;
+using System.Text;
 using Microsoft.OpenApi.Models;
 
 namespace CurlGenerator.Core;
+
 public abstract class ScriptFileGenerator
 {
     protected static readonly string LogFilePath = "generator.log";
-    protected abstract string FileExtension{ get; }
+    protected abstract string FileExtension { get; }
 
     public async Task<GeneratorResult> Generate(GeneratorSettings settings)
     {
@@ -52,7 +53,7 @@ public abstract class ScriptFileGenerator
                 var filename = $"{name.CapitalizeFirstCharacter()}.{FileExtension}";
 
                 var code = new StringBuilder();
-                    code.AppendLine(GenerateRequest(settings, baseUrl, verb, kv, operation));
+                code.AppendLine(GenerateRequest(settings, baseUrl, verb, kv, operation));
 
                 TryLog($"Generated code for {filename}:\n{code}");
 
