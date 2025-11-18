@@ -29,11 +29,6 @@ public class GeneratorSettings
     public string? BaseUrl { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to generate bash scripts.
-    /// </summary>
-    public bool GenerateBashScripts { get; set; }
-
-    /// <summary>
     /// Gets or sets a value indicating whether to skip the certificate check in curl.
     /// </summary>
     public bool SkipCertificateCheck { get; set; }

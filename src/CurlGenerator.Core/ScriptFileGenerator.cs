@@ -1,18 +1,13 @@
-﻿namespace CurlGenerator.Core;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using Microsoft.OpenApi.Models;
 
-public static class ScriptFileGenerator
+namespace CurlGenerator.Core;
+public abstract class ScriptFileGenerator
 {
-    private static readonly string LogFilePath = "generator.log";
+    protected static readonly string LogFilePath = "generator.log";
+    protected abstract string FileExtension{ get; }
 
-    public static async Task<GeneratorResult> Generate(GeneratorSettings settings)
+    public async Task<GeneratorResult> Generate(GeneratorSettings settings)
     {
         TryLog("Starting generation...");
         TryLog($"Settings: {SerializeObject(settings)}");
@@ -36,7 +31,7 @@ public static class ScriptFileGenerator
         return GenerateCode(settings, document, generator, baseUrl);
     }
 
-    private static GeneratorResult GenerateCode(
+    private GeneratorResult GenerateCode(
         GeneratorSettings settings,
         OpenApiDocument document,
         OperationNameGenerator generator,
@@ -54,19 +49,10 @@ public static class ScriptFileGenerator
                 var verb = operations.Key.ToString().CapitalizeFirstCharacter();
                 var name = generator.GetOperationName(document, kv.Key, verb, operation);
 
-                var filename = !settings.GenerateBashScripts
-                    ? $"{name.CapitalizeFirstCharacter()}.ps1"
-                    : $"{name.CapitalizeFirstCharacter()}.sh";
+                var filename = $"{name.CapitalizeFirstCharacter()}.{FileExtension}";
 
                 var code = new StringBuilder();
-                if (!settings.GenerateBashScripts)
-                {
                     code.AppendLine(GenerateRequest(settings, baseUrl, verb, kv, operation));
-                }
-                else
-                {
-                    code.AppendLine(GenerateBashRequest(settings, baseUrl, verb, kv, operation));
-                }
 
                 TryLog($"Generated code for {filename}:\n{code}");
 
@@ -77,182 +63,7 @@ public static class ScriptFileGenerator
         return new GeneratorResult(files);
     }
 
-    private static string GenerateBashRequest(
-        GeneratorSettings settings,
-        string baseUrl,
-        string verb,
-        KeyValuePair<string, OpenApiPathItem> kv,
-        OpenApiOperation operation)
-    {
-        TryLog($"Generating bash request for operation: {operation.OperationId}");
-
-        var code = new StringBuilder();
-        AppendBashSummary(verb, kv, operation, code);
-        AppendBashParameters(verb, kv, operation, code);
-
-        var route = kv.Key.Replace("{", "$").Replace("}", null);
-
-        // Add query parameters directly to the URL if there are any
-        var queryParams = operation.Parameters
-            .Where(p => p.In == ParameterLocation.Query)
-            .Select(p => $"{p.Name}=${{{p.Name.ConvertKebabCaseToSnakeCase()}}}")
-            .ToList();
-
-        var queryString = queryParams.Any() ? $"?{string.Join("&", queryParams)}" : string.Empty;
-        code.AppendLine($"curl -X {verb.ToUpperInvariant()} \"{baseUrl}{route}{queryString}\" \\");
-
-        if (settings.SkipCertificateCheck)
-        {
-            code.AppendLine("  -k \\");
-        }
-
-
-        code.AppendLine($"  -H \"Accept: application/json\" \\");
-
-        // Determine content type based on request body
-        var contentType = operation.RequestBody?.Content?.Keys.FirstOrDefault()
-                          ?? "application/json";
-
-        TryLog($"Content type for operation {operation.OperationId}: {contentType}");
-        code.AppendLine($"  -H \"Content-Type: {contentType}\" \\");
-
-        if (!string.IsNullOrWhiteSpace(settings.AuthorizationHeader))
-        {
-            code.AppendLine($"  -H \"Authorization: {settings.AuthorizationHeader}\" \\");
-        }
-
-        if (operation.RequestBody?.Content != null)
-        {
-            if (settings.ReadBodyFromStdin)
-            {
-                switch (contentType)
-                {
-                    case "application/octet-stream":
-                        code.AppendLine($"  --data-binary @-");
-                        break;
-                    default:
-                        var requestBodySchema = operation.RequestBody.Content[contentType].Schema;
-                        var requestBodyJson = GenerateSampleJsonFromSchema(requestBodySchema);
-                        code.AppendLine($"  -d@-");
-                        break;
-                }
-            }
-            else
-            {
-                switch (contentType)
-                {
-                    case "application/x-www-form-urlencoded":
-                    case "multipart/form-data":
-                        {
-                            var formData = operation.RequestBody.Content[contentType].Schema.Properties
-                                .Select(p => $"-F \"{p.Key}=${{{p.Key}}}\"");
-                            foreach (var formField in formData)
-                            {
-                                code.AppendLine(formField + " \\");
-                            }
-
-                            break;
-                        }
-
-                    case "application/octet-stream":
-                        code.AppendLine($"  --data-binary '@filename'");
-                        break;
-                    default:
-                        {
-                            var requestBodySchema = operation.RequestBody.Content[contentType].Schema;
-                            var requestBodyJson = GenerateSampleJsonFromSchema(requestBodySchema);
-                            code.AppendLine($"  -d '{requestBodyJson}'");
-                            break;
-                        }
-                }
-            }
-        }
-        else
-        {
-            // Remove the trailing backslash if there is no request body
-            code.Length -= 2; // Remove the last backslash and newline
-        }
-
-        TryLog($"Generated bash request: {code}");
-
-        return code.ToString();
-    }
-
-    private static void AppendBashParameters(
-        string verb,
-        KeyValuePair<string, OpenApiPathItem> kv,
-        OpenApiOperation operation,
-        StringBuilder code)
-    {
-        var parameters = operation.Parameters
-            .Where(p =>
-                p.In == ParameterLocation.Path ||
-                p.In == ParameterLocation.Query ||
-                p.In == ParameterLocation.Header ||
-                p.In == ParameterLocation.Cookie)
-            .ToArray();
-
-        if (parameters.Length == 0)
-        {
-            code.AppendLine();
-            return;
-        }
-
-        code.AppendLine();
-
-        foreach (var parameter in parameters)
-        {
-            var name = parameter.Name.ConvertKebabCaseToSnakeCase();
-            code.AppendLine(
-                parameter.Description is null
-                    ? $"# {parameter.In.ToString().ToLowerInvariant()} parameter: {name}"
-                    : $"# {parameter.Description}");
-
-            code.AppendLine($"{name}=\"\""); // Initialize the parameter
-        }
-
-        // Handle form data and file upload fields
-        if (operation.RequestBody?.Content != null)
-        {
-            var contentType = operation.RequestBody.Content.Keys.FirstOrDefault() ?? "application/json";
-            TryLog($"Request body content type for operation {operation.OperationId}: {contentType}");
-            if (contentType == "application/x-www-form-urlencoded" || contentType == "multipart/form-data")
-            {
-                var formData = operation.RequestBody.Content[contentType].Schema.Properties
-                    .Select(p => $"{p.Key}=\"\"");
-                foreach (var formField in formData)
-                {
-                    code.AppendLine(formField);
-                }
-            }
-        }
-
-        code.AppendLine();
-    }
-
-    private static void AppendBashSummary(
-        string verb,
-        KeyValuePair<string, OpenApiPathItem> kv,
-        OpenApiOperation operation,
-        StringBuilder code)
-    {
-        code.AppendLine("#");
-        code.AppendLine($"# Request: {verb.ToUpperInvariant()} {kv.Key}");
-
-        if (!string.IsNullOrWhiteSpace(operation.Summary))
-        {
-            code.AppendLine($"# Summary: {operation.Summary}");
-        }
-
-        if (!string.IsNullOrWhiteSpace(operation.Description))
-        {
-            code.AppendLine($"# Description: {operation.Description}");
-        }
-
-        code.AppendLine("#");
-    }
-
-    private static void TryLog(string message)
+    protected static void TryLog(string message)
     {
         try
         {
@@ -265,7 +76,7 @@ public static class ScriptFileGenerator
         }
     }
 
-    private static string SerializeObject(object obj)
+    protected static string SerializeObject(object obj)
     {
         try
         {
@@ -282,7 +93,7 @@ public static class ScriptFileGenerator
         }
     }
 
-    private static string GenerateSampleJsonFromSchema(OpenApiSchema? schema)
+    protected static string GenerateSampleJsonFromSchema(OpenApiSchema? schema)
     {
         if (schema == null)
             return "{}";
@@ -298,7 +109,7 @@ public static class ScriptFileGenerator
         }
     }
 
-    private static object GenerateSampleObjectFromSchema(OpenApiSchema schema)
+    protected static object GenerateSampleObjectFromSchema(OpenApiSchema schema)
     {
         if (schema.Example != null)
         {
@@ -349,7 +160,7 @@ public static class ScriptFileGenerator
         }
     }
 
-    private static object ConvertOpenApiAnyToObject(Microsoft.OpenApi.Any.IOpenApiAny openApiAny)
+    protected static object ConvertOpenApiAnyToObject(Microsoft.OpenApi.Any.IOpenApiAny openApiAny)
     {
         return openApiAny switch
         {
@@ -367,128 +178,10 @@ public static class ScriptFileGenerator
     }
 
 
-    private static string GenerateRequest(
+    protected abstract string GenerateRequest(
         GeneratorSettings settings,
         string baseUrl,
         string verb,
         KeyValuePair<string, OpenApiPathItem> kv,
-        OpenApiOperation operation)
-    {
-        var code = new StringBuilder();
-        AppendSummary(verb, kv, operation, code);
-        var parameterNameMap = AppendParameters(verb, kv, operation, code);
-
-        var url = kv.Key.Replace("{", "$").Replace("}", null);
-
-        if (parameterNameMap.Count > 0)
-        {
-            url += "?";
-        }
-
-        foreach (var parameterName in parameterNameMap)
-        {
-            var value = parameterName.Value.ConvertKebabCaseToSnakeCase();
-            url += $"{parameterName.Key}=${value}&";
-        }
-
-        if (parameterNameMap.Count > 0)
-        {
-            url = url.Remove(url.Length - 1);
-        }
-
-        code.AppendLine($"curl -X {verb.ToUpperInvariant()} {baseUrl}{url} `");
-        if (settings.SkipCertificateCheck)
-        {
-            code.AppendLine("  -k `");
-        }
-
-        code.AppendLine($"  -H 'Accept: {settings.ContentType}' `");
-        code.AppendLine($"  -H 'Content-Type: {settings.ContentType}' `");
-
-        if (!string.IsNullOrWhiteSpace(settings.AuthorizationHeader))
-        {
-            code.AppendLine($"  -H 'Authorization: {settings.AuthorizationHeader}' `");
-        }
-
-        var contentType = operation.RequestBody?.Content?.Keys
-            ?.FirstOrDefault(c => c.Contains(settings.ContentType));
-
-        if (operation.RequestBody?.Content is null || contentType is null)
-            return code.ToString();
-
-        var requestBody = operation.RequestBody;
-        var requestBodySchema = requestBody.Content[contentType].Schema;
-        var requestBodyJson = GenerateSampleJsonFromSchema(requestBodySchema);
-
-        code.AppendLine($"  -d '{requestBodyJson}'");
-        return code.ToString();
-    }
-
-    private static Dictionary<string, string> AppendParameters(
-        string verb,
-        KeyValuePair<string, OpenApiPathItem> kv,
-        OpenApiOperation operation,
-        StringBuilder code)
-    {
-        var parameters = operation
-            .Parameters
-            .Where(c => c.In is ParameterLocation.Path or ParameterLocation.Query)
-            .ToArray();
-
-        if (parameters.Length == 0)
-        {
-            code.AppendLine();
-            return new Dictionary<string, string>();
-        }
-
-        code.AppendLine("param(");
-
-        var parameterNameMap = new Dictionary<string, string>();
-        foreach (var parameter in parameters)
-        {
-            var name = parameter.Name.ConvertKebabCaseToSnakeCase();
-            code.AppendLine(
-                parameter.Description is null
-                    ? $"""
-                          [Parameter(Mandatory=$True)]
-                          [String] ${name},
-                       """
-                    : $"""
-                          <# {parameter.Description} #>
-                          [Parameter(Mandatory=$True)]
-                          [String] ${name},
-                       """);
-            code.AppendLine();
-            parameterNameMap[parameter.Name] = name;
-        }
-        code.Remove(code.Length - 5, 3);
-
-        code.AppendLine(")");
-        code.AppendLine();
-
-        return parameterNameMap;
-    }
-
-    private static void AppendSummary(
-        string verb,
-        KeyValuePair<string, OpenApiPathItem> kv,
-        OpenApiOperation operation,
-        StringBuilder code)
-    {
-        code.AppendLine("<#");
-        code.AppendLine($"  Request: {verb.ToUpperInvariant()} {kv.Key}");
-
-        if (!string.IsNullOrWhiteSpace(operation.Summary))
-        {
-            code.AppendLine($"  Summary: {operation.Summary}");
-        }
-
-        if (!string.IsNullOrWhiteSpace(operation.Description))
-        {
-            code.AppendLine($"  Description: {operation.Description}");
-        }
-
-        code.AppendLine("#>");
-    }
-
+        OpenApiOperation operation);
 }

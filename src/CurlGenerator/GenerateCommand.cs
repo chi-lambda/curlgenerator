@@ -52,12 +52,14 @@ public class GenerateCommand : AsyncCommand<Settings>
                 OpenApiPath = settings.OpenApiPath,
                 ContentType = settings.ContentType,
                 BaseUrl = settings.BaseUrl,
-                GenerateBashScripts = settings.GenerateBashScripts,
                 SkipCertificateCheck = settings.SkipCertificateCheck,
                 ReadBodyFromStdin = settings.ReadBodyFromStdin
             };
 
-            var result = await ScriptFileGenerator.Generate(generatorSettings);
+            ScriptFileGenerator scriptFileGenerator = settings.GenerateBashScripts
+                ? new BashScriptFileGenerator()
+                : new PwshScriptFileGenerator();
+            var result = await scriptFileGenerator.Generate(generatorSettings);
             await Analytics.LogFeatureUsage(settings);
 
             if (!string.IsNullOrWhiteSpace(settings.OutputFolder) && !Directory.Exists(settings.OutputFolder))
