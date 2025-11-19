@@ -86,7 +86,7 @@ public static class OpenApiDocumentFactory
                 Title = "Unsupported OpenAPI Version",
                 Version = "1.0.0"
             },
-            Paths = new OpenApiPaths(),
+            Paths = [],
             Components = new OpenApiComponents()
         };
     }

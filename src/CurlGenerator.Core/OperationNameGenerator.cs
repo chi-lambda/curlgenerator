@@ -63,7 +63,7 @@ public class OperationNameGenerator : IOperationNameGenerator
     public bool CheckForDuplicateOperationIds(
         OpenApiDocument document)
     {
-        List<string> operationNames = new();
+        List<string> operationNames = [];
         foreach (var kv in document.Paths)
         {
             foreach (var operations in kv.Value.Operations)

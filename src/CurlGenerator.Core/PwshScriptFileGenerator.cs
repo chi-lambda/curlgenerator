@@ -77,7 +77,7 @@ public class PwshScriptFileGenerator : ScriptFileGenerator
         if (parameters.Length == 0)
         {
             code.AppendLine();
-            return new Dictionary<string, string>();
+            return [];
         }
 
         code.AppendLine("param(");
