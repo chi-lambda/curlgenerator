@@ -10,10 +10,7 @@ internal static class Program
     {
         if (args.Length == 0)
         {
-            args = new[]
-            {
-                "--help"
-            };
+            args = ["--help"];
         }
 
         Console.OutputEncoding = System.Text.Encoding.UTF8;
