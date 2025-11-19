@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Azure.Core.Diagnostics;
 using CurlGenerator.Core;
 using CurlGenerator.Validation;
@@ -15,10 +15,6 @@ public class GenerateCommand : AsyncCommand<Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        if (!settings.NoLogging)
-        {
-            Analytics.Configure();
-        }
         try
         {
             var stopwatch = Stopwatch.StartNew();
@@ -60,7 +56,6 @@ public class GenerateCommand : AsyncCommand<Settings>
                 ? new BashScriptFileGenerator()
                 : new PwshScriptFileGenerator();
             var result = await scriptFileGenerator.Generate(generatorSettings);
-            await Analytics.LogFeatureUsage(settings);
 
             if (!string.IsNullOrWhiteSpace(settings.OutputFolder) && !Directory.Exists(settings.OutputFolder))
                 Directory.CreateDirectory(settings.OutputFolder); await Task.WhenAll(
@@ -97,7 +92,6 @@ public class GenerateCommand : AsyncCommand<Settings>
                 AnsiConsole.MarkupLine($"[yellow]Stack Trace:{Crlf}{escapedStackTrace}[/]");
             }
 
-            await Analytics.LogError(exception, settings);
             return exception.HResult;
         }
     }
@@ -214,12 +208,6 @@ public class GenerateCommand : AsyncCommand<Settings>
         AnsiConsole.Write(panel);
         AnsiConsole.WriteLine();
 
-        // Support key info
-        var supportKey = settings.NoLogging
-            ? "[yellow]⚠️  Unavailable when logging is disabled[/]"
-            : $"[green]🔑 Support key: {SupportInformation.GetSupportKey()}[/]";
-        AnsiConsole.MarkupLine(supportKey);
-        AnsiConsole.WriteLine();
     }
 
     private static void DisplayConfiguration(Settings settings)

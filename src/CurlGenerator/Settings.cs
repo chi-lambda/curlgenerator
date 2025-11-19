@@ -21,7 +21,7 @@ public class Settings : CommandSettings
     [DefaultValue(false)]
     public bool GenerateBashScripts { get; set; }
 
-    [Description("Don't log errors or collect telemetry")]
+    [Description("Don't log errors")]
     [CommandOption("--no-logging")]
     [DefaultValue(false)]
     public bool NoLogging { get; set; }
