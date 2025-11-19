@@ -2,7 +2,7 @@
 name: Pull request
 title: ''
 labels: enhancement
-assignees: christianhelle
+assignees: chi-lambda
 
 ---
 

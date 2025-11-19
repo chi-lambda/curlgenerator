@@ -12,8 +12,8 @@
     <Authors>Christian Resma Helle</Authors>
     <Company>Christian Resma Helle</Company>
     <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/christianhelle/curlgenerator</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/christianhelle/curlgenerator</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/chi-lambda/curlgenerator</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/chi-lambda/curlgenerator</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <DebugType>embedded</DebugType>
