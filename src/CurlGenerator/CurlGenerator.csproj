@@ -10,7 +10,6 @@
         <Product>cURL Request Generator</Product>
         <Description>cURL Request Generator is a CLI tool for generating cURL requests from OpenAPI specifications</Description>
         <PackAsTool>true</PackAsTool>
-        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
