@@ -11,10 +11,10 @@ public class GenerateCommandTests
     private const string Http = "http";
 
     private const string HttpsUrlPrefix =
-        Https + "://raw.githubusercontent.com/christianhelle/curlgenerator/main/test/OpenAPI/v3.0/";
+        Https + "://raw.githubusercontent.com/chi-lambda/curlgenerator/main/test/OpenAPI/v3.0/";
 
     private const string HttpUrlPrefix =
-        Http + "://raw.githubusercontent.com/christianhelle/curlgenerator/main/test/OpenAPI/v3.0/";
+        Http + "://raw.githubusercontent.com/chi-lambda/curlgenerator/main/test/OpenAPI/v3.0/";
 
     [Theory]
     [Inline(Samples.PetstoreJsonV3, "SwaggerPetstore.json")]
