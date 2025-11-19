@@ -11,16 +11,18 @@ public class OperationNameGeneratorTests
     public void GetOperationName_ValidInput_ReturnsExpectedName()
     {
         var generator = new OperationNameGenerator();
-        var document = new OpenApiDocument();
-        document.Paths = new OpenApiPaths
+        var document = new OpenApiDocument
         {
+            Paths = new OpenApiPaths
             {
-                "/my-path",
-                new OpenApiPathItem
                 {
-                    Operations = new Dictionary<OperationType, OpenApiOperation>
+                    "/my-path",
+                    new OpenApiPathItem
                     {
-                        { OperationType.Get, new OpenApiOperation { OperationId = "my-operation" } }
+                        Operations = new Dictionary<OperationType, OpenApiOperation>
+                        {
+                            { OperationType.Get, new OpenApiOperation { OperationId = "my-operation" } }
+                        }
                     }
                 }
             }
@@ -37,16 +39,18 @@ public class OperationNameGeneratorTests
     public void GetOperationName_WithException_ReturnsFallbackName()
     {
         var generator = new OperationNameGenerator();
-        var document = new OpenApiDocument();
-        document.Paths = new OpenApiPaths
+        var document = new OpenApiDocument
         {
+            Paths = new OpenApiPaths
             {
-                "/my-path",
-                new OpenApiPathItem
                 {
-                    Operations = new Dictionary<OperationType, OpenApiOperation>
+                    "/my-path",
+                    new OpenApiPathItem
                     {
-                        { OperationType.Get, new OpenApiOperation { OperationId = null } }
+                        Operations = new Dictionary<OperationType, OpenApiOperation>
+                        {
+                            { OperationType.Get, new OpenApiOperation { OperationId = null } }
+                        }
                     }
                 }
             }
@@ -63,26 +67,28 @@ public class OperationNameGeneratorTests
     public void CheckForDuplicateOperationIds_NoDuplicates_ReturnsFalse()
     {
         var generator = new OperationNameGenerator();
-        var document = new OpenApiDocument();
-        document.Paths = new OpenApiPaths
+        var document = new OpenApiDocument
         {
+            Paths = new OpenApiPaths
             {
-                "/my-path",
-                new OpenApiPathItem
                 {
-                    Operations = new Dictionary<OperationType, OpenApiOperation>
+                    "/my-path",
+                    new OpenApiPathItem
                     {
-                        { OperationType.Get, new OpenApiOperation { OperationId = "my-operation" } }
+                        Operations = new Dictionary<OperationType, OpenApiOperation>
+                        {
+                            { OperationType.Get, new OpenApiOperation { OperationId = "my-operation" } }
+                        }
                     }
-                }
-            },
-            {
-                "/my-other-path",
-                new OpenApiPathItem
+                },
                 {
-                    Operations = new Dictionary<OperationType, OpenApiOperation>
+                    "/my-other-path",
+                    new OpenApiPathItem
                     {
-                        { OperationType.Get, new OpenApiOperation { OperationId = "my-other-operation" } }
+                        Operations = new Dictionary<OperationType, OpenApiOperation>
+                        {
+                            { OperationType.Get, new OpenApiOperation { OperationId = "my-other-operation" } }
+                        }
                     }
                 }
             }
@@ -97,26 +103,28 @@ public class OperationNameGeneratorTests
     public void CheckForDuplicateOperationIds_WithDuplicates_ReturnsTrue()
     {
         var generator = new OperationNameGenerator();
-        var document = new OpenApiDocument();
-        document.Paths = new OpenApiPaths
+        var document = new OpenApiDocument
         {
+            Paths = new OpenApiPaths
             {
-                "/my-path",
-                new OpenApiPathItem
                 {
-                    Operations = new Dictionary<OperationType, OpenApiOperation>
+                    "/my-path",
+                    new OpenApiPathItem
                     {
-                        { OperationType.Get, new OpenApiOperation { OperationId = "my-operation" } }
+                        Operations = new Dictionary<OperationType, OpenApiOperation>
+                        {
+                            { OperationType.Get, new OpenApiOperation { OperationId = "my-operation" } }
+                        }
                     }
-                }
-            },
-            {
-                "/my-other-path",
-                new OpenApiPathItem
+                },
                 {
-                    Operations = new Dictionary<OperationType, OpenApiOperation>
+                    "/my-other-path",
+                    new OpenApiPathItem
                     {
-                        { OperationType.Get, new OpenApiOperation { OperationId = "my-operation" } }
+                        Operations = new Dictionary<OperationType, OpenApiOperation>
+                        {
+                            { OperationType.Get, new OpenApiOperation { OperationId = "my-operation" } }
+                        }
                     }
                 }
             }
