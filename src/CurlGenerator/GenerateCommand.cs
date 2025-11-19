@@ -42,20 +42,10 @@ public class GenerateCommand : AsyncCommand<Settings>
 
             await AcquireAzureEntraIdToken(settings);
 
-            var generatorSettings = new GeneratorSettings
-            {
-                AuthorizationHeader = settings.AuthorizationHeader,
-                OpenApiPath = settings.OpenApiPath,
-                ContentType = settings.ContentType,
-                BaseUrl = settings.BaseUrl,
-                SkipCertificateCheck = settings.SkipCertificateCheck,
-                ReadBodyFromStdin = settings.ReadBodyFromStdin
-            };
-
             ScriptFileGenerator scriptFileGenerator = settings.GenerateBashScripts
-                ? new BashScriptFileGenerator()
-                : new PwshScriptFileGenerator();
-            var result = await scriptFileGenerator.Generate(generatorSettings);
+                ? new BashScriptFileGenerator(settings)
+                : new PwshScriptFileGenerator(settings);
+            var result = await scriptFileGenerator.Generate();
 
             if (!string.IsNullOrWhiteSpace(settings.OutputFolder) && !Directory.Exists(settings.OutputFolder))
                 Directory.CreateDirectory(settings.OutputFolder); await Task.WhenAll(

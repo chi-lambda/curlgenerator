@@ -5,9 +5,9 @@ using Microsoft.OpenApi.Models;
 
 namespace CurlGenerator.Core;
 
-public abstract class ScriptFileGenerator
+public abstract class ScriptFileGenerator(ISettings settings)
 {
-    protected static readonly string LogFilePath = "generator.log";
+    protected readonly ISettings settings = settings;
     protected abstract string FileExtension { get; }
     private static readonly JsonSerializerOptions jsonOptions = new()
     {
@@ -15,7 +15,7 @@ public abstract class ScriptFileGenerator
         WriteIndented = true
     };
 
-    public async Task<GeneratorResult> Generate(GeneratorSettings settings)
+    public async Task<GeneratorResult> Generate()
     {
         TryLog("Starting generation...");
         TryLog($"Settings: {SerializeObject(settings)}");
@@ -36,11 +36,10 @@ public abstract class ScriptFileGenerator
 
         TryLog($"Base URL: {baseUrl}");
 
-        return GenerateCode(settings, document, generator, baseUrl);
+        return GenerateCode(document, generator, baseUrl);
     }
 
     private GeneratorResult GenerateCode(
-        GeneratorSettings settings,
         OpenApiDocument document,
         OperationNameGenerator generator,
         string baseUrl)
@@ -60,7 +59,7 @@ public abstract class ScriptFileGenerator
                 var filename = $"{name.CapitalizeFirstCharacter()}.{FileExtension}";
 
                 var code = new StringBuilder();
-                code.AppendLine(GenerateRequest(settings, baseUrl, verb, kv, operation));
+                code.AppendLine(GenerateRequest(baseUrl, verb, kv, operation));
 
                 TryLog($"Generated code for {filename}:\n{code}");
 
@@ -71,11 +70,12 @@ public abstract class ScriptFileGenerator
         return new GeneratorResult(files);
     }
 
-    protected static void TryLog(string message)
+    protected void TryLog(string message)
     {
+        if (settings.LogFile is null) { return; }
         try
         {
-            using var writer = new StreamWriter(LogFilePath, true);
+            using var writer = new StreamWriter(settings.LogFile, true);
             writer.WriteLine($"{DateTime.Now}: {message}");
         }
         catch
@@ -182,7 +182,6 @@ public abstract class ScriptFileGenerator
 
 
     protected abstract string GenerateRequest(
-        GeneratorSettings settings,
         string baseUrl,
         string verb,
         KeyValuePair<string, OpenApiPathItem> kv,

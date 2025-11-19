@@ -14,11 +14,10 @@ public class ScriptFileGeneratorTests
         var json = EmbeddedResources.GetSwaggerPetstore(Samples.PetstoreJsonV3);
         var swaggerFile = await TestFile.CreateSwaggerFile(json, "SwaggerPetstore.json");
 
-        var result = await new BashScriptFileGenerator().Generate(
-            new GeneratorSettings
-            {
-                OpenApiPath = swaggerFile
-            });
+        var result = await new BashScriptFileGenerator(new Settings
+        {
+            OpenApiPath = swaggerFile
+        }).Generate();
 
         using var scope = new AssertionScope();
         result.Should().NotBeNull();
@@ -32,12 +31,11 @@ public class ScriptFileGeneratorTests
         var json = EmbeddedResources.GetSwaggerPetstore(Samples.PetstoreJsonV3);
         var swaggerFile = await TestFile.CreateSwaggerFile(json, "SwaggerPetstore.json");
 
-        var result = await new PwshScriptFileGenerator().Generate(
-            new GeneratorSettings
-            {
-                OpenApiPath = swaggerFile,
-                BaseUrl = "http://my-custom-base-url.com"
-            });
+        var result = await new PwshScriptFileGenerator(new Settings
+        {
+            OpenApiPath = swaggerFile,
+            BaseUrl = "http://my-custom-base-url.com"
+        }).Generate();
 
         using var scope = new AssertionScope();
         result.Should().NotBeNull();

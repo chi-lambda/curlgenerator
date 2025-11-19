@@ -7,8 +7,8 @@ namespace CurlGenerator.Tests;
 public class SerializerTests
 {
     [Theory, AutoNSubstituteData]
-    public void Can_Serialize_GeneratorSettings(
-        GeneratorSettings settings)
+    public void Can_Serialize_Settings(
+        Settings settings)
     {
         Serializer
             .Serialize(settings)
@@ -17,22 +17,22 @@ public class SerializerTests
     }
 
     [Theory, AutoNSubstituteData]
-    public void Can_Deserialize_GeneratorSettings(
-        GeneratorSettings settings)
+    public void Can_Deserialize_Settings(
+        Settings settings)
     {
         var json = Serializer.Serialize(settings);
         Serializer
-            .Deserialize<GeneratorSettings>(json)
+            .Deserialize<Settings>(json)
             .Should()
             .BeEquivalentTo(settings);
     }
 
     [Theory, AutoNSubstituteData]
     public void Deserialize_Is_Case_Insensitive(
-        GeneratorSettings settings)
+        Settings settings)
     {
         var json = Serializer.Serialize(settings);
-        foreach (var property in typeof(GeneratorSettings).GetProperties())
+        foreach (var property in typeof(Settings).GetProperties())
         {
             var jsonProperty = "\"" + property.Name + "\"";
             json = json.Replace(
@@ -41,7 +41,7 @@ public class SerializerTests
         }
 
         Serializer
-            .Deserialize<GeneratorSettings>(json)
+            .Deserialize<Settings>(json)
             .Should()
             .BeEquivalentTo(settings);
     }

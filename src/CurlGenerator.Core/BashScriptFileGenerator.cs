@@ -2,12 +2,11 @@
 using Microsoft.OpenApi.Models;
 
 namespace CurlGenerator.Core;
-public class BashScriptFileGenerator : ScriptFileGenerator
+public class BashScriptFileGenerator(ISettings settings) : ScriptFileGenerator(settings)
 {
     protected override string FileExtension => "sh";
 
     protected override string GenerateRequest(
-        GeneratorSettings settings,
         string baseUrl,
         string verb,
         KeyValuePair<string, OpenApiPathItem> kv,
@@ -118,7 +117,7 @@ public class BashScriptFileGenerator : ScriptFileGenerator
         return code.ToString();
     }
 
-    private static void AppendBashParameters(
+    private void AppendBashParameters(
         string verb,
         KeyValuePair<string, OpenApiPathItem> kv,
         OpenApiOperation operation,

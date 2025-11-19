@@ -42,7 +42,7 @@ public class GenerateCommandTests
     {
         var json = EmbeddedResources.GetSwaggerPetstore(version);
         settings.OpenApiPath = await TestFile.CreateSwaggerFile(json, filename);
-        settings.NoLogging = true;
+        settings.LogFile = null;
 
         (await sut.ExecuteAsync(context, settings))
             .Should()
@@ -66,7 +66,7 @@ public class GenerateCommandTests
     {
         var json = EmbeddedResources.GetStringFromEmbeddedResource(manifestResourceStreamName);
         settings.OpenApiPath = await TestFile.CreateSwaggerFile(json, manifestResourceStreamName);
-        settings.NoLogging = true;
+        settings.LogFile = null;
         settings.SkipValidation = true;
 
         (await sut.ExecuteAsync(context, settings))
@@ -91,7 +91,7 @@ public class GenerateCommandTests
     {
         var json = EmbeddedResources.GetStringFromEmbeddedResource(manifestResourceStreamName);
         settings.OpenApiPath = await TestFile.CreateSwaggerFile(json, manifestResourceStreamName);
-        settings.NoLogging = true;
+        settings.LogFile = null;
         settings.SkipValidation = false;
 
         (await sut.ExecuteAsync(context, settings))
@@ -115,7 +115,7 @@ public class GenerateCommandTests
         Settings settings)
     {
         settings.OpenApiPath = url;
-        settings.NoLogging = true;
+        settings.LogFile = null;
 
         (await sut.ExecuteAsync(context, settings))
             .Should()
@@ -131,7 +131,7 @@ public class GenerateCommandTests
         Settings settings)
     {
         settings.OpenApiPath = url;
-        settings.NoLogging = true;
+        settings.LogFile = null;
 
         (await sut.ExecuteAsync(context, settings))
             .Should()

@@ -28,7 +28,7 @@ public class SwaggerPetstoreTests
     public async Task Can_Generate_Code(Samples version, string filename)
     {
         var generateCode = await GenerateCode(version, filename);
-        
+
         using var scope = new AssertionScope();
         generateCode.Should().NotBeNull();
         generateCode.Files.Should().NotBeNullOrEmpty();
@@ -45,12 +45,12 @@ public class SwaggerPetstoreTests
     [InlineData(HttpUrlPrefix + "petstore.yaml")]
     public async Task Can_Generate_Code_From_Url(string url)
     {
-        var generateCode = await new PwshScriptFileGenerator().Generate(
-            new GeneratorSettings
+        var generateCode = await new PwshScriptFileGenerator(
+            new Settings
             {
                 OpenApiPath = url,
                 AuthorizationHeader = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-            });
+            }).Generate();
 
         using var scope = new AssertionScope();
         generateCode.Should().NotBeNull();
@@ -68,11 +68,11 @@ public class SwaggerPetstoreTests
     [InlineData(HttpUrlPrefix + "petstore.yaml")]
     public async Task Files_Generated_From_Url_Uses_OpenApiPath_Authority_As_For_BaseUrl(string url)
     {
-        var generateCode = await new PwshScriptFileGenerator().Generate(
-            new GeneratorSettings
+        var generateCode = await new PwshScriptFileGenerator(
+            new Settings
             {
                 OpenApiPath = url
-            });
+            }).Generate();
 
         generateCode
             .Files
@@ -85,11 +85,11 @@ public class SwaggerPetstoreTests
     {
         var json = EmbeddedResources.GetSwaggerPetstore(version);
         var swaggerFile = await TestFile.CreateSwaggerFile(json, filename);
-        return await new PwshScriptFileGenerator().Generate(
-            new GeneratorSettings
+        return await new PwshScriptFileGenerator(
+            new Settings
             {
                 OpenApiPath = swaggerFile,
                 AuthorizationHeader = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-            });
+            }).Generate();
     }
 }

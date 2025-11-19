@@ -2,12 +2,11 @@
 using Microsoft.OpenApi.Models;
 
 namespace CurlGenerator.Core;
-public class PwshScriptFileGenerator : ScriptFileGenerator
+public class PwshScriptFileGenerator(ISettings settings) : ScriptFileGenerator(settings)
 {
     protected override string FileExtension => "ps1";
 
     protected override string GenerateRequest(
-        GeneratorSettings settings,
         string baseUrl,
         string verb,
         KeyValuePair<string, OpenApiPathItem> kv,
