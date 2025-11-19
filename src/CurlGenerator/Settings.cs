@@ -22,7 +22,7 @@ public class Settings : CommandSettings, ISettings
     [DefaultValue(false)]
     public bool GenerateBashScripts { get; set; }
 
-    [Description("Log to [log file] or generator.log if not specified")]
+    [Description("Log to [[log file]] or generator.log if not specified")]
     [CommandOption("-l|--log")]
     [DefaultValue(null)]
     public string? LogFile { get; set; }
