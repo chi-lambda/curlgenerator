@@ -1,9 +1,11 @@
-[![Build](https://github.com/christianhelle/curlgenerator/actions/workflows/build.yml/badge.svg)](https://github.com/christianhelle/curlgenerator/actions/workflows/build.yml)
-[![Smoke Tests](https://github.com/christianhelle/curlgenerator/actions/workflows/smoke-tests.yml/badge.svg)](https://github.com/christianhelle/curlgenerator/actions/workflows/smoke-tests.yml)
-[![NuGet](https://img.shields.io/nuget/v/curlgenerator?color=blue)](https://www.nuget.org/packages/curlgenerator)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=christianhelle_curlgenerator&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=christianhelle_curlgenerator)
-[![codecov](https://codecov.io/gh/christianhelle/curlgenerator/graph/badge.svg?token=242YT1N6T2)](https://codecov.io/gh/christianhelle/curlgenerator)
-[![Qodana](https://github.com/christianhelle/curlgenerator/actions/workflows/qodana.yml/badge.svg)](https://github.com/christianhelle/curlgenerator/actions/workflows/qodana.yml)
+Forked from [christianhelle/curlgenerator](https://github.com/christianhelle/curlgenerator/)
+
+Why?
+
+* It doesn't do what I need it to do. Mostly reading data from stdin and ignoring certificate errors.
+* Parameter handling on bash is incredibly clunky (still TODO).
+* Some architectural rework looks like a good idea. Lots of code duplication. Behavior differs between pwsh and bash.
+* Removed the telemetry. I don't need my cURL generator to phone home.
 
 # cURL Request Generator
 
@@ -11,17 +13,20 @@ Generate cURL requests from OpenAPI specifications v2.0 and v3.0
 
 ## Installation
 
-This is tool is distrubuted as a .NET Tool on NuGet.org
+**This fork is _not_ distributed on NuGet.**
 
-To install, simply use the following command
+To install, make sure you have .Net 8 installed and use the following commands:
 
 ```bash
-dotnet tool install --global curlgenerator
+git checkout https://github.com/chi-lambda/curlgenerator.git
+cd curlgenerator
+dotnet publish
+dotnet tool install curlgenerator --add-source src/CurlGenerator/bin/Release/ --global
 ```
 
 ## Usage
 
-```pwsh
+```
 USAGE:
     curlgenerator [URL or input file] [OPTIONS]
 
@@ -32,25 +37,29 @@ EXAMPLES:
     curlgenerator ./openapi.json --output-type onefile
     curlgenerator https://petstore.swagger.io/v2/swagger.json
     curlgenerator https://petstore3.swagger.io/api/v3/openapi.json --base-url https://petstore3.swagger.io
-    curlgenerator ./openapi.json --authorization-header Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+    curlgenerator ./openapi.json --authorization-header Bearer
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
     curlgenerator ./openapi.json --azure-scope [Some Application ID URI]/.default
 
 ARGUMENTS:
     [URL or input file]    URL or file path to OpenAPI Specification file
 
 OPTIONS:
-                                           DEFAULT                                                                                                                           
-    -h, --help                                                 Prints help information                                                                                       
-    -v, --version                                              Prints version information                                                                                    
-    -o, --output <OUTPUT>                  ./                  Output directory                                                                                              
-        --bash                                                 Generate Bash scripts                                                                                         
-        --no-logging                                           Don't log errors or collect telemetry                                                                         
-        --skip-validation                                      Skip validation of OpenAPI Specification file                                                                 
-        --authorization-header <HEADER>                        Authorization header to use for all requests                                                                  
-        --content-type <CONTENT-TYPE>      application/json    Default Content-Type header to use for all requests                                                           
-        --base-url <BASE-URL>                                  Default Base URL to use for all requests. Use this if the OpenAPI spec doesn't explicitly specify a server URL
-        --azure-scope <SCOPE>                                  Azure Entra ID Scope to use for retrieving Access Token for Authorization header                              
-        --azure-tenant-id <TENANT-ID>                          Azure Entra ID Tenant ID to use for retrieving Access Token for Authorization header                          
+                                           DEFAULT
+    -h, --help                                                 Prints help information
+    -v, --version                                              Prints version information
+    -o, --output <OUTPUT>                  ./                  Output directory
+        --bash                                                 Generate Bash scripts
+    -l, --log                                                  Log to [log file] or generator.log if not specified
+        --skip-validation                                      Skip validation of OpenAPI Specification file
+        --authorization-header <HEADER>                        Authorization header to use for all requests
+        --content-type <CONTENT-TYPE>      application/json    Default Content-Type header to use for all requests
+        --base-url <BASE-URL>                                  Default Base URL to use for all requests. Use this if the OpenAPI
+                                                               spec doesn't explicitly specify a server URL
+        --azure-scope <SCOPE>                                  Azure Entra ID Scope to use for retrieving Access Token for Authorization header
+        --azure-tenant-id <TENANT-ID>                          Azure Entra ID Tenant ID to use for retrieving Access Token for Authorization header
+    -k, --insecure                                             Skip certificate check
+    -i, --stdin                                                Read body from standard input
 ```
 
 Running the following:
@@ -61,7 +70,7 @@ curlgenerator https://petstore.swagger.io/v2/swagger.json
 
 Outputs the following:
 
-```sh
+```yaml
 cURL Request Generator v0.1.1
 Support key: mbmbqvd
 
@@ -82,14 +91,14 @@ Duration: 00:00:02.3089450
 Which will produce the following files:
 
 ```sh
--rw-r--r-- 1 christian 197121  593 Dec 10 10:44 DeleteOrder.ps1        
+-rw-r--r-- 1 christian 197121  593 Dec 10 10:44 DeleteOrder.ps1
 -rw-r--r-- 1 christian 197121  231 Dec 10 10:44 DeletePet.ps1
 -rw-r--r-- 1 christian 197121  358 Dec 10 10:44 DeleteUser.ps1
 -rw-r--r-- 1 christian 197121  432 Dec 10 10:44 GetFindPetsByStatus.ps1
--rw-r--r-- 1 christian 197121  504 Dec 10 10:44 GetFindPetsByTags.ps1  
--rw-r--r-- 1 christian 197121  371 Dec 10 10:44 GetInventory.ps1       
--rw-r--r-- 1 christian 197121  247 Dec 10 10:44 GetLoginUser.ps1       
--rw-r--r-- 1 christian 197121  291 Dec 10 10:44 GetLogoutUser.ps1      
+-rw-r--r-- 1 christian 197121  504 Dec 10 10:44 GetFindPetsByTags.ps1
+-rw-r--r-- 1 christian 197121  371 Dec 10 10:44 GetInventory.ps1
+-rw-r--r-- 1 christian 197121  247 Dec 10 10:44 GetLoginUser.ps1
+-rw-r--r-- 1 christian 197121  291 Dec 10 10:44 GetLogoutUser.ps1
 -rw-r--r-- 1 christian 197121  540 Dec 10 10:44 GetOrderById.ps1
 -rw-r--r-- 1 christian 197121  275 Dec 10 10:44 GetPetById.ps1
 -rw-r--r-- 1 christian 197121  245 Dec 10 10:44 GetUserByName.ps1
@@ -164,7 +173,7 @@ az account get-access-token --scope [Some Application ID URI]/.default `
         https://api.example.com/swagger/v1/swagger.json `
         --authorization-header ("Bearer " + $_.accessToken) `
         --base-url https://api.example.com `
-        --output ./HttpFiles 
+        --output ./HttpFiles
 }
 ```
 
@@ -175,11 +184,11 @@ curlgenerator `
   https://api.example.com/swagger/v1/swagger.json `
   --azure-scope [Some Application ID URI]/.default `
   --base-url https://api.example.com `
-  --output ./HttpFiles 
+  --output ./HttpFiles
 ```
 
 #
 
-For tips and tricks on software development, check out [my blog](https://christianhelle.com)
+For tips and tricks on software development, check out [Christian Helle's blog](https://christianhelle.com)
 
-If you find this useful and feel a bit generous then feel free to [buy me a coffee ☕](https://www.buymeacoffee.com/christianhelle)
+If you find this useful and feel a bit generous then feel free to [buy him a coffee ☕](https://www.buymeacoffee.com/christianhelle)
