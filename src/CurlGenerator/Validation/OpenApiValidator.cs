@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Security;
+using CurlGenerator.Core;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Reader;
 using Microsoft.OpenApi.YamlReader;
@@ -74,6 +75,6 @@ public static class OpenApiValidator
 
         await using var stream = await GetStream(openApiFile, CancellationToken.None);
         var reader = new OpenApiYamlReader();
-        return await reader.ReadAsync(stream, new Uri(openApiFile), openApiReaderSettings, CancellationToken.None);
+        return await reader.ReadAsync(stream, OpenApiDocumentFactory.Uri, openApiReaderSettings, CancellationToken.None);
     }
 }

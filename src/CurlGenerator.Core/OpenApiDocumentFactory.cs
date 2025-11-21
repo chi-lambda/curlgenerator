@@ -12,6 +12,12 @@ namespace CurlGenerator.Core;
 public static class OpenApiDocumentFactory
 {
     /// <summary>
+    /// The OpenAPI readers want a URI. I'm sure that's really important, but it doesn't seem to have any effect on the output.
+    /// </summary>
+    public static readonly Uri Uri = new("http://example.org/");
+
+
+    /// <summary>
     /// Creates a new instance of the <see cref="OpenApiDocument"/> class asynchronously.
     /// </summary>
     /// <returns>A new instance of the <see cref="OpenApiDocument"/> class.</returns>
@@ -22,14 +28,14 @@ public static class OpenApiDocumentFactory
         {
             var content = await GetHttpContent(openApiPath);
             var reader = new OpenApiYamlReader();
-            var readResult = await reader.ReadAsync(content, new Uri(openApiPath), settings);
+            var readResult = await reader.ReadAsync(content, Uri, settings);
             return readResult.Document!;
         }
         else
         {
             using var stream = File.OpenRead(openApiPath);
             var reader = new OpenApiYamlReader();
-            var readResult = await reader.ReadAsync(stream, new Uri(openApiPath), settings);
+            var readResult = await reader.ReadAsync(stream, Uri, settings);
             return readResult.Document!;
         }
     }
