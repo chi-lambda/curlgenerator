@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace CurlGenerator.Core;
 
@@ -14,6 +14,10 @@ public class BashScriptFileGenerator(ISettings settings) : ScriptFileGenerator(s
 
     protected override void AppendParameters(OpenApiOperation operation, StringBuilder code)
     {
+        if(operation.Parameters is null)
+        {
+            return;
+        }
         var parameters = operation.Parameters
             .Where(p => p.In is
                 ParameterLocation.Path or
@@ -32,7 +36,7 @@ public class BashScriptFileGenerator(ISettings settings) : ScriptFileGenerator(s
 
         foreach (var parameter in parameters)
         {
-            var name = parameter.Name.ConvertKebabCaseToSnakeCase();
+            var name = parameter.Name!.ConvertKebabCaseToSnakeCase();
             code.AppendLine(
                 parameter.Description is null
                     ? $"# {parameter.In.ToString().ToLowerInvariant()} parameter: {name}"
@@ -48,7 +52,7 @@ public class BashScriptFileGenerator(ISettings settings) : ScriptFileGenerator(s
             TryLog($"Request body content type for operation {operation.OperationId}: {contentType}");
             if (contentType == "application/x-www-form-urlencoded" || contentType == "multipart/form-data")
             {
-                var formData = operation.RequestBody.Content[contentType].Schema.Properties
+                var formData = operation.RequestBody.Content[contentType].Schema!.Properties
                     .Select(p => $"{p.Key}=\"\"");
                 foreach (var formField in formData)
                 {

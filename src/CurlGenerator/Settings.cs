@@ -43,7 +43,7 @@ public class Settings : CommandSettings, ISettings
 
     [Description("Default Base URL to use for all requests. Use this if the OpenAPI spec doesn't explicitly specify a server URL.")]
     [CommandOption("--base-url <BASE-URL>")]
-    public string? BaseUrl { get; set; }
+    public string BaseUrl { get; set; } = string.Empty;
 
     [Description("Azure Entra ID Scope to use for retrieving Access Token for Authorization header")]
     [CommandOption("--azure-scope <SCOPE>")]

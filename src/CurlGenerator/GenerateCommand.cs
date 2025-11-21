@@ -2,8 +2,7 @@
 using Azure.Core.Diagnostics;
 using CurlGenerator.Core;
 using CurlGenerator.Validation;
-using Microsoft.OpenApi.Models;
-using Microsoft.OpenApi.Readers.Exceptions;
+using Microsoft.OpenApi;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -13,7 +12,7 @@ public class GenerateCommand : AsyncCommand<Settings>
 {
     private static readonly string Crlf = Environment.NewLine;
 
-    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         try
         {
@@ -119,19 +118,22 @@ public class GenerateCommand : AsyncCommand<Settings>
 
     private static async Task ValidateOpenApiSpec(Settings settings)
     {
-        var validationResult = await OpenApiValidator.Validate(settings.OpenApiPath!);
+        var validationResult = await Validation.OpenApiValidator.Validate(settings.OpenApiPath!);
         if (!validationResult.IsValid)
         {
             AnsiConsole.MarkupLine($"[red]{Crlf}OpenAPI validation failed:{Crlf}[/]");
 
-            foreach (var error in validationResult.Diagnostics.Errors)
+            if (validationResult.Diagnostics is not null)
             {
-                TryWriteLine(error, "red", "Error");
-            }
+                foreach (var error in validationResult.Diagnostics.Errors)
+                {
+                    TryWriteLine(error, "red", "Error");
+                }
 
-            foreach (var warning in validationResult.Diagnostics.Warnings)
-            {
-                TryWriteLine(warning, "yellow", "Warning");
+                foreach (var warning in validationResult.Diagnostics.Warnings)
+                {
+                    TryWriteLine(warning, "yellow", "Warning");
+                }
             }
 
             validationResult.ThrowIfInvalid();

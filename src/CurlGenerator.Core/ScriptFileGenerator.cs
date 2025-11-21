@@ -1,7 +1,8 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace CurlGenerator.Core;
 
@@ -54,7 +55,7 @@ public abstract class ScriptFileGenerator(ISettings settings)
         foreach (var pathItem in document.Paths)
         {
             TryLog($"Processing path: {pathItem.Key}");
-            foreach (var operations in pathItem.Value.Operations)
+            foreach (var operations in pathItem.Value.Operations ?? [])
             {
                 TryLog($"Processing operation: {operations.Key}");
 
@@ -102,7 +103,7 @@ public abstract class ScriptFileGenerator(ISettings settings)
         }
     }
 
-    protected static string GenerateSampleJsonFromSchema(OpenApiSchema? schema)
+    protected static string GenerateSampleJsonFromSchema(IOpenApiSchema? schema)
     {
         if (schema == null)
             return "{}";
@@ -118,7 +119,7 @@ public abstract class ScriptFileGenerator(ISettings settings)
         }
     }
 
-    protected static object GenerateSampleObjectFromSchema(OpenApiSchema schema)
+    protected static object? GenerateSampleObjectFromSchema(IOpenApiSchema schema)
     {
         if (schema.Example != null)
         {
@@ -127,8 +128,8 @@ public abstract class ScriptFileGenerator(ISettings settings)
 
         switch (schema.Type)
         {
-            case "object":
-                var obj = new Dictionary<string, object>();
+            case JsonSchemaType.Object:
+                var obj = new Dictionary<string, object?>();
                 if (schema.Properties != null)
                 {
                     foreach (var prop in schema.Properties)
@@ -138,14 +139,14 @@ public abstract class ScriptFileGenerator(ISettings settings)
                 }
                 return obj;
 
-            case "array":
+            case JsonSchemaType.Array:
                 if (schema.Items != null)
                 {
                     return new[] { GenerateSampleObjectFromSchema(schema.Items) };
                 }
                 return new object[0];
 
-            case "string":
+            case JsonSchemaType.String:
                 return schema.Format switch
                 {
                     "date" => DateTime.Today.ToString("yyyy-MM-dd"),
@@ -155,13 +156,13 @@ public abstract class ScriptFileGenerator(ISettings settings)
                     _ => "string"
                 };
 
-            case "integer":
+            case JsonSchemaType.Integer:
                 return 0;
 
-            case "number":
+            case JsonSchemaType.Number:
                 return 0.0;
 
-            case "boolean":
+            case JsonSchemaType.Boolean:
                 return false;
 
             default:
@@ -169,26 +170,28 @@ public abstract class ScriptFileGenerator(ISettings settings)
         }
     }
 
-    protected static object ConvertOpenApiAnyToObject(Microsoft.OpenApi.Any.IOpenApiAny openApiAny)
+    protected static object? ConvertOpenApiAnyToObject(JsonNode? openApiAny)
     {
-        return openApiAny switch
+        if(openApiAny is null)
         {
-            Microsoft.OpenApi.Any.OpenApiString str => str.Value,
-            Microsoft.OpenApi.Any.OpenApiInteger integer => integer.Value,
-            Microsoft.OpenApi.Any.OpenApiLong longVal => longVal.Value,
-            Microsoft.OpenApi.Any.OpenApiFloat floatVal => floatVal.Value,
-            Microsoft.OpenApi.Any.OpenApiDouble doubleVal => doubleVal.Value,
-            Microsoft.OpenApi.Any.OpenApiBoolean boolVal => boolVal.Value,
-            Microsoft.OpenApi.Any.OpenApiDateTime dateTime => dateTime.Value,
-            Microsoft.OpenApi.Any.OpenApiObject obj => obj.ToDictionary(kv => kv.Key, kv => ConvertOpenApiAnyToObject(kv.Value)),
-            Microsoft.OpenApi.Any.OpenApiArray array => array.Select(ConvertOpenApiAnyToObject).ToArray(),
+            return null;
+        }
+        return openApiAny.GetValueKind() switch
+        {
+            JsonValueKind.String => openApiAny.GetValue<string>(),
+            JsonValueKind.Number => openApiAny.GetValue<double>(),
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Null => null,
+            JsonValueKind.Object => openApiAny.AsObject().ToDictionary(kv => kv.Key, kv => ConvertOpenApiAnyToObject(kv.Value)),
+            JsonValueKind.Array => openApiAny.AsArray().Select(ConvertOpenApiAnyToObject).ToArray(),
             _ => openApiAny.ToString() ?? "value"
         };
     }
 
     protected void AppendSummary(
         string verb,
-        KeyValuePair<string, OpenApiPathItem> pathItem,
+        KeyValuePair<string, IOpenApiPathItem> pathItem,
         OpenApiOperation operation,
         StringBuilder code)
     {
@@ -210,11 +213,11 @@ public abstract class ScriptFileGenerator(ISettings settings)
 
     protected string CreateQueryString(OpenApiOperation operation)
     {
-        if (operation.Parameters.Any())
+        if (operation.Parameters is not null && operation.Parameters.Any())
         {
             var parameters = operation.Parameters
                 .Where(p => p.In == ParameterLocation.Query)
-                .Select(p => $"{p.Name}={AsVariable(p.Name)}");
+                .Select(p => $"{p.Name}={AsVariable(p.Name!)}");
             return "?" + string.Join('&', parameters);
         }
         return string.Empty;
@@ -224,7 +227,7 @@ public abstract class ScriptFileGenerator(ISettings settings)
     protected string GenerateRequest(
         string baseUrl,
         string verb,
-        KeyValuePair<string, OpenApiPathItem> pathItem,
+        KeyValuePair<string, IOpenApiPathItem> pathItem,
         OpenApiOperation operation)
     {
         TryLog($"Generating {ShellName} request for operation: {operation.OperationId}");
@@ -278,7 +281,7 @@ public abstract class ScriptFileGenerator(ISettings settings)
                 {
                     case "application/x-www-form-urlencoded":
                     case "multipart/form-data":
-                        var formData = operation.RequestBody.Content[contentType].Schema.Properties
+                        var formData = operation.RequestBody.Content[contentType].Schema!.Properties
                             .Select(p => $"-F \"{p.Key}=${{{p.Key}}}\"")
                             .ToList();
 

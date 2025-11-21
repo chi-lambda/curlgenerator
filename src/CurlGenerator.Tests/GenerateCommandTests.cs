@@ -44,7 +44,7 @@ public class GenerateCommandTests
         settings.OpenApiPath = await TestFile.CreateSwaggerFile(json, filename);
         settings.LogFile = null;
 
-        (await sut.ExecuteAsync(context, settings))
+        (await sut.ExecuteAsync(context, settings, CancellationToken.None))
             .Should()
             .Be(0);
     }
@@ -69,34 +69,9 @@ public class GenerateCommandTests
         settings.LogFile = null;
         settings.SkipValidation = true;
 
-        (await sut.ExecuteAsync(context, settings))
+        (await sut.ExecuteAsync(context, settings, CancellationToken.None))
             .Should()
             .Be(0);
-    }
-
-    [Theory]
-    [Inline("V31.non-oauth-scopes.json")]
-    [Inline("V31.non-oauth-scopes.yaml")]
-    [Inline("V31.webhook-example.json")]
-    [Inline("V31.webhook-example.yaml")]
-    [Inline("V31.non-oauth-scopes.json")]
-    [Inline("V31.non-oauth-scopes.yaml")]
-    [Inline("V31.webhook-example.json")]
-    [Inline("V31.webhook-example.yaml")]
-    public async Task Should_Fail_Validating_V31_Spec(
-        string manifestResourceStreamName,
-        GenerateCommand sut,
-        CommandContext context,
-        Settings settings)
-    {
-        var json = EmbeddedResources.GetStringFromEmbeddedResource(manifestResourceStreamName);
-        settings.OpenApiPath = await TestFile.CreateSwaggerFile(json, manifestResourceStreamName);
-        settings.LogFile = null;
-        settings.SkipValidation = false;
-
-        (await sut.ExecuteAsync(context, settings))
-            .Should()
-            .NotBe(0);
     }
 
     [Theory]
@@ -117,7 +92,7 @@ public class GenerateCommandTests
         settings.OpenApiPath = url;
         settings.LogFile = null;
 
-        (await sut.ExecuteAsync(context, settings))
+        (await sut.ExecuteAsync(context, settings, CancellationToken.None))
             .Should()
             .Be(0);
     }
@@ -133,7 +108,7 @@ public class GenerateCommandTests
         settings.OpenApiPath = url;
         settings.LogFile = null;
 
-        (await sut.ExecuteAsync(context, settings))
+        (await sut.ExecuteAsync(context, settings, CancellationToken.None))
             .Should()
             .NotBe(0);
     }

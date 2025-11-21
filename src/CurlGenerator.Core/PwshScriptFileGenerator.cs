@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace CurlGenerator.Core;
 
@@ -14,6 +14,10 @@ public class PwshScriptFileGenerator(ISettings settings) : ScriptFileGenerator(s
 
     protected override void AppendParameters(OpenApiOperation operation, StringBuilder code)
     {
+        if (operation.Parameters is null)
+        {
+            return;
+        }
         var parameters = operation.Parameters
             .Where(p => p.In is
                 ParameterLocation.Path or
@@ -30,7 +34,7 @@ public class PwshScriptFileGenerator(ISettings settings) : ScriptFileGenerator(s
 
         foreach (var parameter in parameters)
         {
-            var name = parameter.Name.ConvertKebabCaseToSnakeCase();
+            var name = parameter.Name!.ConvertKebabCaseToSnakeCase();
             code.AppendLine(
                 parameter.Description is null
                     ? $"""

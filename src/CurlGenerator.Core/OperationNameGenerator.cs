@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace CurlGenerator.Core;
 
@@ -66,7 +66,7 @@ public class OperationNameGenerator : IOperationNameGenerator
         List<string> operationNames = [];
         foreach (var kv in document.Paths)
         {
-            foreach (var operations in kv.Value.Operations)
+            foreach (var operations in kv.Value.Operations!)
             {
                 var operation = operations.Value;
                 operationNames.Add(
