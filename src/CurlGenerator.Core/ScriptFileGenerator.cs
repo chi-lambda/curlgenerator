@@ -9,6 +9,12 @@ public abstract class ScriptFileGenerator(ISettings settings)
 {
     protected readonly ISettings settings = settings;
     protected abstract string FileExtension { get; }
+    protected abstract string Joiner { get; }
+    protected abstract string CommentStart { get; }
+    protected abstract string CommentContinue { get; }
+    protected abstract string CommentEnd { get; }
+    protected abstract string ShellName{ get; }
+
     private static readonly JsonSerializerOptions jsonOptions = new()
     {
         ReferenceHandler = ReferenceHandler.Preserve,
@@ -45,21 +51,21 @@ public abstract class ScriptFileGenerator(ISettings settings)
         string baseUrl)
     {
         var files = new List<ScriptFile>();
-        foreach (var kv in document.Paths)
+        foreach (var pathItem in document.Paths)
         {
-            TryLog($"Processing path: {kv.Key}");
-            foreach (var operations in kv.Value.Operations)
+            TryLog($"Processing path: {pathItem.Key}");
+            foreach (var operations in pathItem.Value.Operations)
             {
                 TryLog($"Processing operation: {operations.Key}");
 
                 var operation = operations.Value;
                 var verb = operations.Key.ToString().CapitalizeFirstCharacter();
-                var name = generator.GetOperationName(document, kv.Key, verb, operation);
+                var name = generator.GetOperationName(document, pathItem.Key, verb, operation);
 
                 var filename = $"{name.CapitalizeFirstCharacter()}.{FileExtension}";
 
                 var code = new StringBuilder();
-                code.AppendLine(GenerateRequest(baseUrl, verb, kv, operation));
+                code.AppendLine(GenerateRequest(baseUrl, verb, pathItem, operation));
 
                 TryLog($"Generated code for {filename}:\n{code}");
 
@@ -180,10 +186,142 @@ public abstract class ScriptFileGenerator(ISettings settings)
         };
     }
 
+    protected void AppendSummary(
+        string verb,
+        KeyValuePair<string, OpenApiPathItem> pathItem,
+        OpenApiOperation operation,
+        StringBuilder code)
+    {
+        code.AppendLine(CommentStart);
+        code.AppendLine($"{CommentContinue} Request: {verb.ToUpperInvariant()} {pathItem.Key}");
 
-    protected abstract string GenerateRequest(
+        if (!string.IsNullOrWhiteSpace(operation.Summary))
+        {
+            code.AppendLine($"{CommentContinue} Summary: {operation.Summary}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(operation.Description))
+        {
+            code.AppendLine($"{CommentContinue} Description: {operation.Description}");
+        }
+
+        code.AppendLine(CommentEnd);
+    }
+
+    protected string CreateQueryString(OpenApiOperation operation)
+    {
+        if (operation.Parameters.Any())
+        {
+            var parameters = operation.Parameters
+                .Where(p => p.In == ParameterLocation.Query)
+                .Select(p => $"{p.Name}={AsVariable(p.Name)}");
+            return "?" + string.Join('&', parameters);
+        }
+        return string.Empty;
+    }
+
+
+    protected string GenerateRequest(
         string baseUrl,
         string verb,
-        KeyValuePair<string, OpenApiPathItem> kv,
-        OpenApiOperation operation);
+        KeyValuePair<string, OpenApiPathItem> pathItem,
+        OpenApiOperation operation)
+    {
+        TryLog($"Generating {ShellName} request for operation: {operation.OperationId}");
+
+        var code = new StringBuilder();
+        AppendSummary(verb, pathItem, operation, code);
+        AppendParameters(operation, code);
+
+        var route = pathItem.Key.Replace("{", "$").Replace("}", null);
+        var queryString = CreateQueryString(operation);
+        code.AppendLine($"curl -X {verb.ToUpperInvariant()} \"{baseUrl}{route}{queryString}\" {Joiner}");
+
+        if (settings.SkipCertificateCheck)
+        {
+            code.AppendLine($"  -k {Joiner}");
+        }
+
+        code.AppendLine($"  -H 'Accept: {settings.ContentType}' {Joiner}");
+
+        // Determine content type based on request body
+        var contentType = operation.RequestBody?.Content?.Keys.FirstOrDefault()
+                          ?? "application/json";
+
+        TryLog($"Content type for operation {operation.OperationId}: {contentType}");
+        code.AppendLine($"  -H 'Content-Type: {contentType}' {Joiner}");
+
+        if (!string.IsNullOrWhiteSpace(settings.AuthorizationHeader))
+        {
+            code.AppendLine($"  -H 'Authorization: {settings.AuthorizationHeader}' {Joiner}");
+        }
+
+        if (operation.RequestBody?.Content != null)
+        {
+            if (settings.ReadBodyFromStdin)
+            {
+                switch (contentType)
+                {
+                    case "application/octet-stream":
+                        code.AppendLine($"  --data-binary @-");
+                        break;
+                    default:
+                        var requestBodySchema = operation.RequestBody.Content[contentType].Schema;
+                        var requestBodyJson = GenerateSampleJsonFromSchema(requestBodySchema);
+                        code.AppendLine($"  -d@-");
+                        break;
+                }
+            }
+            else
+            {
+                switch (contentType)
+                {
+                    case "application/x-www-form-urlencoded":
+                    case "multipart/form-data":
+                        var formData = operation.RequestBody.Content[contentType].Schema.Properties
+                            .Select(p => $"-F \"{p.Key}=${{{p.Key}}}\"")
+                            .ToList();
+
+                        for (int i = 0; i < formData.Count; i++)
+                        {
+                            // Only add trailing backslash if not the last item
+                            if (i < formData.Count - 1)
+                            {
+                                code.AppendLine(formData[i] + $" {Joiner}");
+                            }
+                            else
+                            {
+                                code.AppendLine(formData[i]);
+                            }
+                        }
+                        break;
+                    case "application/octet-stream":
+                        code.AppendLine($"  --data-binary '@filename'");
+                        break;
+                    case "application/json":
+                        var requestBodySchema = operation.RequestBody.Content[contentType].Schema;
+                        var requestBodyJson = GenerateSampleJsonFromSchema(requestBodySchema);
+
+                        code.AppendLine($"  -d '{requestBodyJson}'");
+                        break;
+                    default:
+                        // Remove the trailing backslash and newline if there is no request body
+                        var currentCode = code.ToString();
+                        if (currentCode.EndsWith($" {Joiner}\n") || currentCode.EndsWith($" {Joiner}\r\n"))
+                        {
+                            code.Length -= currentCode.EndsWith("\r\n") ? 4 : 3; // Remove " \\\n" or " \\\r\n"
+                            code.AppendLine(); // Add back just the newline
+                        }
+                        break;
+                }
+            }
+        }
+
+        TryLog($"Generated {ShellName} request: {code}");
+
+        return code.ToString();
+    }
+
+    protected abstract void AppendParameters(OpenApiOperation operation, StringBuilder code);
+    protected abstract string AsVariable(string name);
 }
