@@ -60,4 +60,8 @@ public class Settings : CommandSettings, ISettings
     [Description("Read body from standard input")]
     [CommandOption("-i|--stdin")]
     public bool ReadBodyFromStdin { get; set; }
+
+    [Description("Cookie file")]
+    [CommandOption("-c|--cookie|--cookies <COOKIE-FILE>")]
+    public string? CookieFile { get; set; }
 }

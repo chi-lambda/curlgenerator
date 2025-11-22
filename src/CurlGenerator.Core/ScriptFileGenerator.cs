@@ -36,9 +36,7 @@ public abstract class ScriptFileGenerator(ISettings settings)
         if (!Uri.IsWellFormedUriString(baseUrl, UriKind.Absolute) &&
             OpenApiDocumentFactory.IsHttp(settings.OpenApiPath))
         {
-            baseUrl = new Uri(settings.OpenApiPath)
-                          .GetLeftPart(UriPartial.Authority) +
-                      baseUrl;
+            baseUrl = new Uri(settings.OpenApiPath).GetLeftPart(UriPartial.Authority) + baseUrl;
         }
 
         TryLog($"Base URL: {baseUrl}");
@@ -257,6 +255,11 @@ public abstract class ScriptFileGenerator(ISettings settings)
         if (!string.IsNullOrWhiteSpace(settings.AuthorizationHeader))
         {
             code.AppendLine($"  -H 'Authorization: {settings.AuthorizationHeader}' {Joiner}");
+        }
+
+        if (!string.IsNullOrEmpty(settings.CookieFile))
+        {
+            code.AppendLine($"  -c {settings.CookieFile} -b {settings.CookieFile} {Joiner}");
         }
 
         if (operation.RequestBody?.Content != null)

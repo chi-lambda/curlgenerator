@@ -37,4 +37,9 @@ public interface ISettings
     /// Gets or sets a value indicating whether to read the message body from standard input.
     /// </summary>
     bool ReadBodyFromStdin { get; }
+
+    /// <summary>
+    /// The file where to store and load cookies. Setting it to `null` disables cookies.
+    /// </summary>
+    string? CookieFile { get; }
 }
