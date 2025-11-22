@@ -75,6 +75,9 @@ public static class OpenApiValidator
 
         await using var stream = await GetStream(openApiFile, CancellationToken.None);
         var reader = new OpenApiYamlReader();
-        return await reader.ReadAsync(stream, OpenApiDocumentFactory.Uri, openApiReaderSettings, CancellationToken.None);
+        var uri = openApiFile.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                ? new Uri(openApiFile)
+                : new Uri($"file://{openApiFile}");
+        return await reader.ReadAsync(stream, uri, openApiReaderSettings, CancellationToken.None);
     }
 }
