@@ -66,16 +66,17 @@ public static class OpenApiValidator
     private static async Task<ReadResult> ParseOpenApi(string openApiFile)
     {
         var fileInfo = new FileInfo(openApiFile);
+        var isHttp = OpenApiDocumentFactory.IsHttp(openApiFile);
         var openApiReaderSettings = new OpenApiReaderSettings
         {
-            BaseUrl = OpenApiDocumentFactory.IsHttp(openApiFile)
+            BaseUrl = isHttp
                 ? new Uri(openApiFile)
                 : new Uri($"file://{fileInfo.DirectoryName}{Path.DirectorySeparatorChar}")
         };
 
         await using var stream = await GetStream(openApiFile, CancellationToken.None);
         var reader = new OpenApiYamlReader();
-        var uri = OpenApiDocumentFactory.IsHttp(openApiFile)
+        var uri = isHttp
                 ? new Uri(openApiFile)
                 : new Uri($"file://{fileInfo.FullName}");
         return await reader.ReadAsync(stream, uri, openApiReaderSettings, CancellationToken.None);
