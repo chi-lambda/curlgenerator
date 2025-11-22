@@ -12,30 +12,31 @@ namespace CurlGenerator.Core;
 public static class OpenApiDocumentFactory
 {
     /// <summary>
-    /// The OpenAPI readers want a URI. I'm sure that's really important, but it doesn't seem to have any effect on the output.
-    /// </summary>
-    public static readonly Uri Uri = new("http://example.org/");
-
-
-    /// <summary>
     /// Creates a new instance of the <see cref="OpenApiDocument"/> class asynchronously.
     /// </summary>
     /// <returns>A new instance of the <see cref="OpenApiDocument"/> class.</returns>
     public static async Task<OpenApiDocument> CreateAsync(string openApiPath)
     {
-        var settings = new OpenApiReaderSettings();
+        var directoryName = new FileInfo(openApiPath).DirectoryName;
+        var settings = new OpenApiReaderSettings
+        {
+            BaseUrl = openApiPath.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                ? new Uri(openApiPath)
+                : new Uri($"file://{directoryName}{Path.DirectorySeparatorChar}")
+        };
+        
         if (IsHttp(openApiPath))
         {
-            var content = await GetHttpContent(openApiPath);
+            using var content = await GetHttpContent(openApiPath);
             var reader = new OpenApiYamlReader();
-            var readResult = await reader.ReadAsync(content, Uri, settings);
+            var readResult = await reader.ReadAsync(content, new Uri(openApiPath), settings);
             return readResult.Document!;
         }
         else
         {
             using var stream = File.OpenRead(openApiPath);
             var reader = new OpenApiYamlReader();
-            var readResult = await reader.ReadAsync(stream, Uri, settings);
+            var readResult = await reader.ReadAsync(stream, new Uri($"file://{openApiPath}"), settings);
             return readResult.Document!;
         }
     }
@@ -81,15 +82,5 @@ public static class OpenApiDocumentFactory
     private static bool IsHttp(string path)
     {
         return path.StartsWith("http://") || path.StartsWith("https://");
-    }
-
-    /// <summary>
-    /// Determines whether the specified path is a YAML file.
-    /// </summary>
-    /// <param name="path">The path to check.</param>
-    /// <returns>True if the path is a YAML file, otherwise false.</returns>
-    private static bool IsYaml(string path)
-    {
-        return path.EndsWith("yaml") || path.EndsWith("yml");
     }
 }

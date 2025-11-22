@@ -281,20 +281,24 @@ public abstract class ScriptFileGenerator(ISettings settings)
                 {
                     case "application/x-www-form-urlencoded":
                     case "multipart/form-data":
-                        var formData = operation.RequestBody.Content[contentType].Schema!.Properties
-                            .Select(p => $"-F \"{p.Key}=${{{p.Key}}}\"")
-                            .ToList();
-
-                        for (int i = 0; i < formData.Count; i++)
+                        var schema = operation.RequestBody.Content[contentType].Schema;
+                        if (schema is not null)
                         {
-                            // Only add trailing backslash if not the last item
-                            if (i < formData.Count - 1)
+                            var formData = schema.Properties
+                                .Select(p => $"-F \"{p.Key}=${{{p.Key}}}\"")
+                                .ToList();
+
+                            for (int i = 0; i < formData.Count; i++)
                             {
-                                code.AppendLine(formData[i] + $" {Joiner}");
-                            }
-                            else
-                            {
-                                code.AppendLine(formData[i]);
+                                // Only add trailing backslash if not the last item
+                                if (i < formData.Count - 1)
+                                {
+                                    code.AppendLine(formData[i] + $" {Joiner}");
+                                }
+                                else
+                                {
+                                    code.AppendLine(formData[i]);
+                                }
                             }
                         }
                         break;

@@ -39,7 +39,7 @@ public class GenerateCommand : AsyncCommand<Settings>
             if (!settings.SkipValidation)
                 await ValidateOpenApiSpec(settings);
 
-            await AcquireAzureEntraIdToken(settings);
+            await AcquireAzureEntraIdToken(settings, cancellationToken);
 
             ScriptFileGenerator scriptFileGenerator = settings.GenerateBashScripts
                 ? new BashScriptFileGenerator(settings)
@@ -85,7 +85,7 @@ public class GenerateCommand : AsyncCommand<Settings>
         }
     }
 
-    private static async Task AcquireAzureEntraIdToken(Settings settings)
+    private static async Task AcquireAzureEntraIdToken(Settings settings, CancellationToken cancellationToken)
     {
         if (!string.IsNullOrWhiteSpace(settings.AuthorizationHeader) ||
             (string.IsNullOrWhiteSpace(settings.AzureScope) &&
@@ -101,7 +101,7 @@ public class GenerateCommand : AsyncCommand<Settings>
                 .TryGetAccessTokenAsync(
                     settings.AzureTenantId!,
                     settings.AzureScope!,
-                    CancellationToken.None);
+                    cancellationToken);
 
             if (!string.IsNullOrWhiteSpace(token))
             {
