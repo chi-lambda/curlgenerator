@@ -6,6 +6,7 @@ Why?
 * Parameter handling on bash is incredibly clunky (still TODO).
 * Some architectural rework looks like a good idea. Lots of code duplication. Behavior differs between pwsh and bash.
 * Removed the telemetry. I don't need my cURL generator to phone home.
+* I don't know how, but it's apparently a lot faster?
 
 # cURL Request Generator
 
