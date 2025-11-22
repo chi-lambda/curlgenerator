@@ -26,7 +26,7 @@ public static class OpenApiValidator
         string input,
         CancellationToken cancellationToken)
     {
-        if (input.StartsWith("http"))
+        if (OpenApiDocumentFactory.IsHttp(input))
         {
             try
             {
@@ -68,14 +68,14 @@ public static class OpenApiValidator
         var fileInfo = new FileInfo(openApiFile);
         var openApiReaderSettings = new OpenApiReaderSettings
         {
-            BaseUrl = openApiFile.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+            BaseUrl = OpenApiDocumentFactory.IsHttp(openApiFile)
                 ? new Uri(openApiFile)
                 : new Uri($"file://{fileInfo.DirectoryName}{Path.DirectorySeparatorChar}")
         };
 
         await using var stream = await GetStream(openApiFile, CancellationToken.None);
         var reader = new OpenApiYamlReader();
-        var uri = openApiFile.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+        var uri = OpenApiDocumentFactory.IsHttp(openApiFile)
                 ? new Uri(openApiFile)
                 : new Uri($"file://{fileInfo.FullName}");
         return await reader.ReadAsync(stream, uri, openApiReaderSettings, CancellationToken.None);

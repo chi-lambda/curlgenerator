@@ -20,7 +20,7 @@ public static class OpenApiDocumentFactory
         var fileInfo = new FileInfo(openApiPath);
         var settings = new OpenApiReaderSettings
         {
-            BaseUrl = openApiPath.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+            BaseUrl = IsHttp(openApiPath)
                 ? new Uri(openApiPath)
                 : new Uri($"file://{fileInfo.DirectoryName}{Path.DirectorySeparatorChar}")
         };
@@ -79,7 +79,7 @@ public static class OpenApiDocumentFactory
     /// </summary>
     /// <param name="path">The path to check.</param>
     /// <returns>True if the path is an HTTP URL, otherwise false.</returns>
-    private static bool IsHttp(string path)
+    public static bool IsHttp(string path)
     {
         return path.StartsWith("http://") || path.StartsWith("https://");
     }
