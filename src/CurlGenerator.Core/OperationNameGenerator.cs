@@ -35,7 +35,7 @@ public class OperationNameGenerator : IOperationNameGenerator
             // Try to use operationId if available
             if (!string.IsNullOrWhiteSpace(operation.OperationId))
             {
-                return operation.OperationId
+                return operation.OperationId!
                     .CapitalizeFirstCharacter()
                     .ConvertKebabCaseToPascalCase()
                     .ConvertRouteToCamelCase()

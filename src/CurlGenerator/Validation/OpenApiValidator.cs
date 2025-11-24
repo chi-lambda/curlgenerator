@@ -74,6 +74,10 @@ public static class OpenApiValidator
                 : new Uri($"file://{fileInfo.DirectoryName}{Path.DirectorySeparatorChar}")
         };
 
+        var uri = OpenApiDocumentFactory.IsHttp(openApiFile)
+            ? new Uri(openApiFile)
+            : new Uri($"file://{fileInfo.FullName}");
+
         await using var stream = await GetStream(openApiFile, CancellationToken.None);
         var reader = new OpenApiYamlReader();
         var uri = isHttp
