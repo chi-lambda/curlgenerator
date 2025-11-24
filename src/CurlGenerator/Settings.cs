@@ -22,8 +22,8 @@ public class Settings : CommandSettings, ISettings
     [DefaultValue(false)]
     public bool GenerateBashScripts { get; set; }
 
-    [Description("Log to [[log file]] or generator.log if not specified")]
-    [CommandOption("-l|--log")]
+    [Description("Log to <LOG-FILE>")]
+    [CommandOption("-l|--log <LOG-FILE>")]
     [DefaultValue(null)]
     public string? LogFile { get; set; }
 
@@ -61,7 +61,12 @@ public class Settings : CommandSettings, ISettings
     [CommandOption("-i|--stdin")]
     public bool ReadBodyFromStdin { get; set; }
 
-    [Description("Cookie file")]
+    [Description("Cookie file; enables cookie management")]
     [CommandOption("-c|--cookie|--cookies <COOKIE-FILE>")]
     public string? CookieFile { get; set; }
+
+    [Description("Additional options passed to curl")]
+    [CommandOption("--curl-opts <CURL-OPTS>")]
+    [DefaultValue(null)]
+    public string? CurlOpts { get; set; }
 }

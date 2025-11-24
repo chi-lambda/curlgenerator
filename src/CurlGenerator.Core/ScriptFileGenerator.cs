@@ -262,6 +262,11 @@ public abstract class ScriptFileGenerator(ISettings settings)
             code.AppendLine($"  -c {settings.CookieFile} -b {settings.CookieFile} {Joiner}");
         }
 
+        if(!string.IsNullOrEmpty(settings.CurlOpts))
+        {
+            code.AppendLine($"  {settings.CurlOpts} {Joiner}");
+        }
+
         if (operation.RequestBody?.Content != null)
         {
             if (settings.ReadBodyFromStdin)
