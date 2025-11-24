@@ -24,7 +24,6 @@ public class Settings : CommandSettings, ISettings
 
     [Description("Log to <LOG-FILE>")]
     [CommandOption("-l|--log <LOG-FILE>")]
-    [DefaultValue(null)]
     public string? LogFile { get; set; }
 
     [Description("Skip validation of OpenAPI Specification file")]
@@ -67,6 +66,5 @@ public class Settings : CommandSettings, ISettings
 
     [Description("Additional options passed to curl")]
     [CommandOption("--curl-opts <CURL-OPTS>")]
-    [DefaultValue(null)]
     public string? CurlOpts { get; set; }
 }
