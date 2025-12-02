@@ -16,6 +16,13 @@ public class GenerateCommand : AsyncCommand<Settings>
     {
         try
         {
+            if(context.Remaining.Parsed.Any())
+            {
+                var extraArgs = context.Remaining.Parsed.Select(k => k.Key);
+                AnsiConsole.MarkupLine($"{Crlf}[red]Error: Unknown parameter(s):{Crlf}{string.Join(Crlf, extraArgs)}[/]");
+                return 1;
+            }
+
             var stopwatch = Stopwatch.StartNew();
 
             if (string.IsNullOrEmpty(settings.OpenApiPath))
@@ -171,13 +178,7 @@ public class GenerateCommand : AsyncCommand<Settings>
     {
         try
         {
-            // Escape markup characters in the error message to prevent markup interpretation
-            // Square brackets and curly braces need escaping for Spectre.Console markup
-            var escapedError = error.ToString()
-                .Replace("[", "[[")
-                .Replace("]", "]]")
-                .Replace("{", "{{")
-                .Replace("}", "}}");
+            var escapedError = error.ToString().EscapeMarkup();
             AnsiConsole.MarkupLine($"[{color}]{label}:{Crlf}{escapedError}{Crlf}[/]");
         }
         catch

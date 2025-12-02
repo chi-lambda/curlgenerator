@@ -67,4 +67,19 @@ public class Settings : CommandSettings, ISettings
     [Description("Additional options passed to curl")]
     [CommandOption("--curl-opts <CURL-OPTS>")]
     public string? CurlOpts { get; set; }
+
+    [Description("Get parameters from environment")]
+    [CommandOption("--env-params")]
+    [DefaultValue(false)]
+    public bool EnvironmentParameters { get; set; }
+
+    [Description("Prefix PowerShell parameters with \"env:\". No effect on bash or without --env-params")]
+    [CommandOption("--pwsh-env")]
+    [DefaultValue(false)]
+    public bool PwshEnv { get; set; }
+
+    [Description("If a required parameter is missing but has a default value, it can be omitted.")]
+    [CommandOption("--required-default")]
+    [DefaultValue(false)]
+    public bool RequiredDefault{ get; set;}
 }

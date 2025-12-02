@@ -2,25 +2,35 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
+using System.Web;
 using Microsoft.OpenApi;
 
 namespace CurlGenerator.Core;
 
-public abstract class ScriptFileGenerator(ISettings settings)
+public abstract class ScriptFileGenerator
 {
-    protected readonly ISettings settings = settings;
+    protected readonly ISettings settings;
     protected abstract string FileExtension { get; }
     protected abstract string Joiner { get; }
     protected abstract string CommentStart { get; }
     protected abstract string CommentContinue { get; }
     protected abstract string CommentEnd { get; }
-    protected abstract string ShellName{ get; }
+    protected abstract string ShellName { get; }
 
+    private readonly Regex pathVarRegex = new(@"\{(\w+)\}", RegexOptions.Compiled);
     private static readonly JsonSerializerOptions jsonOptions = new()
     {
         ReferenceHandler = ReferenceHandler.Preserve,
         WriteIndented = true
     };
+    
+    public ScriptFileGenerator(ISettings settings)
+    {
+        this.settings = settings;
+        AsVariable = settings.EnvironmentParameters && settings.PwshEnv ? AsEnvironmentVariable : AsScriptVariable;
+    }
+
 
     public async Task<GeneratorResult> Generate()
     {
@@ -170,7 +180,7 @@ public abstract class ScriptFileGenerator(ISettings settings)
 
     protected static object? ConvertOpenApiAnyToObject(JsonNode? openApiAny)
     {
-        if(openApiAny is null)
+        if (openApiAny is null)
         {
             return null;
         }
@@ -187,7 +197,7 @@ public abstract class ScriptFileGenerator(ISettings settings)
         };
     }
 
-    protected void AppendSummary(
+    private void AppendSummary(
         string verb,
         KeyValuePair<string, IOpenApiPathItem> pathItem,
         OpenApiOperation operation,
@@ -198,20 +208,20 @@ public abstract class ScriptFileGenerator(ISettings settings)
 
         if (!string.IsNullOrWhiteSpace(operation.Summary))
         {
-            code.AppendLine($"{CommentContinue} Summary: {operation.Summary}");
+            code.AppendLine($"{CommentContinue} Summary: {HttpUtility.HtmlDecode(operation.Summary)}");
         }
 
         if (!string.IsNullOrWhiteSpace(operation.Description))
         {
-            code.AppendLine($"{CommentContinue} Description: {operation.Description}");
+            code.AppendLine($"{CommentContinue} Description: {HttpUtility.HtmlDecode(operation.Description)}");
         }
 
         code.AppendLine(CommentEnd);
     }
 
-    protected string CreateQueryString(OpenApiOperation operation)
+    private string CreateQueryString(OpenApiOperation operation)
     {
-        if (operation.Parameters is not null && operation.Parameters.Any())
+        if (operation.Parameters is not null && operation.Parameters.Any(p => p.In == ParameterLocation.Query))
         {
             var parameters = operation.Parameters
                 .Where(p => p.In == ParameterLocation.Query)
@@ -222,7 +232,7 @@ public abstract class ScriptFileGenerator(ISettings settings)
     }
 
 
-    protected string GenerateRequest(
+    private string GenerateRequest(
         string baseUrl,
         string verb,
         KeyValuePair<string, IOpenApiPathItem> pathItem,
@@ -230,11 +240,12 @@ public abstract class ScriptFileGenerator(ISettings settings)
     {
         TryLog($"Generating {ShellName} request for operation: {operation.OperationId}");
 
-        var code = new StringBuilder();
+        StringBuilder code = new();
         AppendSummary(verb, pathItem, operation, code);
         AppendParameters(operation, code);
 
-        var route = pathItem.Key.Replace("{", "$").Replace("}", null);
+        var routeReplacement = $"${AsVariable("$1")}";
+        var route = pathVarRegex.Replace(pathItem.Key, routeReplacement);
         var queryString = CreateQueryString(operation);
         code.AppendLine($"curl -X {verb.ToUpperInvariant()} \"{baseUrl}{route}{queryString}\" {Joiner}");
 
@@ -254,15 +265,17 @@ public abstract class ScriptFileGenerator(ISettings settings)
 
         if (!string.IsNullOrWhiteSpace(settings.AuthorizationHeader))
         {
-            code.AppendLine($"  -H 'Authorization: {settings.AuthorizationHeader}' {Joiner}");
+            code.AppendLine($"  -H \"Authorization: {settings.AuthorizationHeader}\" {Joiner}");
         }
+
+        AppendHeaderParameters(operation, code);
 
         if (!string.IsNullOrEmpty(settings.CookieFile))
         {
             code.AppendLine($"  -c {settings.CookieFile} -b {settings.CookieFile} {Joiner}");
         }
 
-        if(!string.IsNullOrEmpty(settings.CurlOpts))
+        if (!string.IsNullOrEmpty(settings.CurlOpts))
         {
             code.AppendLine($"  {settings.CurlOpts} {Joiner}");
         }
@@ -337,6 +350,39 @@ public abstract class ScriptFileGenerator(ISettings settings)
         return code.ToString();
     }
 
+    private void AppendHeaderParameters(OpenApiOperation operation, StringBuilder code)
+    {
+        if (operation.Parameters is null)
+        {
+            return;
+        }
+
+        foreach (var parameter in operation.Parameters.Where(p => p.In == ParameterLocation.Header))
+        {
+            if (parameter.Name is null) { continue; }
+            code.AppendLine($"  -H \"{parameter.Name}: {AsVariable(parameter.Name)}\" {Joiner}");
+        }
+    }
+
+    protected string AsScriptVariable(string name) => $"${{{name.ConvertKebabCaseToSnakeCase()}}}";
+
+    protected string? GetDefaultValue(IOpenApiParameter parameter)
+    {
+        if (parameter.Schema is null) { return ""; }
+        return parameter.Schema.Type switch
+        {
+            JsonSchemaType.Null => "",
+            JsonSchemaType.Boolean => parameter.Schema.Default?.GetValue<bool>().ToString().ToLowerInvariant(),
+            JsonSchemaType.Integer => parameter.Schema.Default?.GetValue<decimal>().ToString(),
+            JsonSchemaType.Number => parameter.Schema.Default?.GetValue<double>().ToString(),
+            JsonSchemaType.String => parameter.Schema.Default?.GetValue<string>(),
+            JsonSchemaType.Object => "{}",
+            JsonSchemaType.Array => "[]",
+            _ => ""
+        };
+    }
+
     protected abstract void AppendParameters(OpenApiOperation operation, StringBuilder code);
-    protected abstract string AsVariable(string name);
+    protected abstract string AsEnvironmentVariable(string name);
+    protected readonly Func<string, string> AsVariable;
 }

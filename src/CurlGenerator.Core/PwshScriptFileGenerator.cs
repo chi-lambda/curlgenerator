@@ -12,6 +12,8 @@ public class PwshScriptFileGenerator(ISettings settings) : ScriptFileGenerator(s
     protected override string CommentEnd => "#>";
     protected override string ShellName => "PowerShell";
 
+    private readonly string CommaCrLf = "," + Environment.NewLine;
+
     protected override void AppendParameters(OpenApiOperation operation, StringBuilder code)
     {
         if (operation.Parameters is null)
@@ -30,29 +32,31 @@ public class PwshScriptFileGenerator(ISettings settings) : ScriptFileGenerator(s
             return;
         }
 
-        code.AppendLine("param(");
-
-        foreach (var parameter in parameters)
+        if (!settings.EnvironmentParameters)
         {
-            var name = parameter.Name!.ConvertKebabCaseToSnakeCase();
-            code.AppendLine(
-                parameter.Description is null
-                    ? $"""
-                          [Parameter(Mandatory=$True)]
-                          [String] ${name},
-                       """
-                    : $"""
-                          <# {parameter.Description} #>
-                          [Parameter(Mandatory=$True)]
-                          [String] ${name},
-                       """);
-            code.AppendLine();
-        }
-        code.Remove(code.Length - 5, 3);
+            code.AppendLine("param(");
 
-        code.AppendLine(")");
+            var parameterStrings = parameters.Select(parameter =>
+            {
+                var name = parameter.Name!.ConvertKebabCaseToSnakeCase();
+                var mandatory = parameter.Required && (!settings.RequiredDefault || parameter.Schema?.Default is null) ? "True" : "False";
+                return parameter.Description is null
+                        ? $"""
+                             [Parameter(Mandatory=${mandatory})]
+                             [String] ${name},
+                          """
+                        : $"""
+                             <# {parameter.Description} #>
+                             [Parameter(Mandatory=${mandatory})]
+                             [String] ${name}
+                          """;
+            });
+            code.AppendLine(string.Join(CommaCrLf, parameterStrings));
+            code.AppendLine(")");
+        }
         code.AppendLine();
     }
 
-    protected override string AsVariable(string name) => $"${name.ConvertKebabCaseToSnakeCase()}";
+    protected override string AsEnvironmentVariable(string name) => $"${{env:{name.ConvertKebabCaseToSnakeCase()}}}";
+
 }

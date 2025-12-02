@@ -42,9 +42,25 @@ public interface ISettings
     /// Sets the name of file where to store and load cookies. Setting it to `null` disables cookies.
     /// </summary>
     string? CookieFile { get; }
-    
+
     /// <summary>
     /// Gets additional options passed to curl.
     /// </summary>
     string? CurlOpts { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether parameters should be read from the environment.
+    /// </summary>
+    bool EnvironmentParameters { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether Powershell environment parameters are prefixed with "env:".
+    /// </summary>
+    bool PwshEnv { get; }
+
+    /// <summary>
+    /// Gets a value indicating missing required parameters have their default substituted in.
+    /// That doesn't make a whole lot of sense, but there are APIs that do that.
+    /// </summary>
+    bool RequiredDefault { get; }
 }
