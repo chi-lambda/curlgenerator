@@ -69,6 +69,11 @@ OPTIONS:
     -i, --stdin                                                Read body from standard input
     -c, --cookie <COOKIE-FILE>                                 Cookie file; enables cookie management
         --curl-opts <CURL-OPTS>                                Additional options passed to curl
+        --env-params                                           Get parameters from environment
+        --pwsh-env                                             Prefix PowerShell parameters with "env:". No
+                                                               effect on bash or without --env-params
+        --required-default                                     If a required parameter is missing but has a
+                                                               default value, it can be omitted
 ```
 
 Running the following:
