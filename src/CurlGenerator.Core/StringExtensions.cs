@@ -19,7 +19,7 @@ public static class StringExtensions
 
     public static string CapitalizeFirstCharacter(this string str)
     {
-        return str[0..1].ToUpperInvariant() + str[1..];
+        return string.IsNullOrEmpty(str) ? string.Empty : str[0..1].ToUpperInvariant() + str[1..];
     }
 
     public static string ConvertSpacesToPascalCase(this string str)
