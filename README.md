@@ -36,12 +36,11 @@ EXAMPLES:
     curlgenerator ./openapi.json
     curlgenerator ./openapi.json --output ./
     curlgenerator ./openapi.json --bash
-    curlgenerator ./openapi.json --output-type onefile
     curlgenerator https://petstore.swagger.io/v2/swagger.json
     curlgenerator https://petstore3.swagger.io/api/v3/openapi.json --base-url https://petstore3.swagger.io
-    curlgenerator ./openapi.json --authorization-header Bearer
+    curlgenerator ./openapi.json --authorization-header 'Bearer
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyf
-Q.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+Q.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
     curlgenerator ./openapi.json --azure-scope [Some Application ID URI]/.default
 
 ARGUMENTS:
@@ -199,6 +198,42 @@ curlgenerator `
   --azure-scope [Some Application ID URI]/.default `
   --base-url https://api.example.com `
   --output ./HttpFiles
+```
+
+## Environment Parameters
+
+Instead of passing parameters on the command line (PowerShell) or edit them in the script (bash),
+you can set environment variables before or when calling the script. E.g. on bash when the scripts
+have been generated with the `--env-params` parameter, you can call a script like so:
+
+```bash
+id=123 ./GetWidget.sh
+```
+
+or
+
+```bash
+id=123
+./GetWidget.sh
+```
+
+For PowerShell, you have the choice between normal and environment variables, i.e. `$foo` or `$env:foo`, depending on whether the `--pwsh-env` has been provided. No, you cannot mix the two. The script isn't psychic.
+
+## Curl options
+
+While insecure connections and cookies are provided as a convenience, the passing of other curl options can be enabled through `--curl-opts`.
+These are inserted as-is into the curl command line.
+
+## Hints
+
+Curl options, authorization headers and base URL are expanded at runtime. This allows things like `--curl-opts '$CURL_OPTS'`, `--authorization-header 'Bearer $BEARER_TOKEN'` or --base-url '$BASE_URL' (note the single quotes) so you can call
+your script like this:
+
+```bash
+BASE_URL=https://example.org
+CURL_OPTS=-v
+BEARER_TOKEN=$(./GetToken.sh)
+./GetWidget.sh
 ```
 
 #
