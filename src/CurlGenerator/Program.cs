@@ -38,12 +38,6 @@ internal static class Program
                         "--bash");
                 
                 configuration
-                    .AddExample(
-                        "./openapi.json",
-                        "--output-type",
-                        "onefile");
-
-                configuration
                     .AddExample("https://petstore.swagger.io/v2/swagger.json");
 
                 configuration
