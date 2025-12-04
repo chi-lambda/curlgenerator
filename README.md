@@ -226,7 +226,7 @@ These are inserted as-is into the curl command line.
 
 ## Hints
 
-Curl options, authorization headers and base URL are expanded at runtime. This allows things like `--curl-opts '$CURL_OPTS'`, `--authorization-header 'Bearer $BEARER_TOKEN'` or --base-url '$BASE_URL' (note the single quotes) so you can call
+Curl options, authorization headers and base URL are expanded at runtime. This allows things like `--curl-opts '$CURL_OPTS'`, `--authorization-header 'Bearer $BEARER_TOKEN'` or `--base-url '$BASE_URL'` (note the single quotes) so you can call
 your script like this:
 
 ```bash
