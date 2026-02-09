@@ -3,7 +3,7 @@ Forked from [christianhelle/curlgenerator](https://github.com/christianhelle/cur
 Why?
 
 * It doesn't do what I need it to do. Mostly reading data from stdin and ignoring certificate errors.
-* Parameter handling on bash is incredibly clunky (still TODO).
+* Parameter handling on bash is incredibly clunky (still TODO, but reading parameters from the environment is an improvment).
 * Some architectural rework looks like a good idea. Lots of code duplication. Behavior differs between pwsh and bash.
 * It can handle cookies now.
 * Removed the telemetry. I don't need my cURL generator to phone home.
