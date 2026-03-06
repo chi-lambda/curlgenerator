@@ -63,4 +63,9 @@ public interface ISettings
     /// That doesn't make a whole lot of sense, but there are APIs that do that.
     /// </summary>
     bool RequiredDefault { get; }
+
+    /// <summary>
+    /// Gets a string indicating a command to be run before curl (e.g. a login)
+    /// </summary>
+    string? PreCommand { get; }
 }

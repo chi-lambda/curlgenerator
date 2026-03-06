@@ -68,6 +68,10 @@ public class Settings : CommandSettings, ISettings
     [CommandOption("--curl-opts <CURL-OPTS>")]
     public string? CurlOpts { get; set; }
 
+    [Description("Command to run before curl (e.g. authentication or logging)")]
+    [CommandOption("--pre-command <COMMAND>")]
+    public string? PreCommand { get; set; }
+
     [Description("Get parameters from environment")]
     [CommandOption("--env-params")]
     [DefaultValue(false)]
@@ -81,5 +85,5 @@ public class Settings : CommandSettings, ISettings
     [Description("If a required parameter is missing but has a default value, it can be omitted.")]
     [CommandOption("--required-default")]
     [DefaultValue(false)]
-    public bool RequiredDefault{ get; set;}
+    public bool RequiredDefault { get; set; }
 }

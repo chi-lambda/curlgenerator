@@ -39,8 +39,8 @@ EXAMPLES:
     curlgenerator https://petstore.swagger.io/v2/swagger.json
     curlgenerator https://petstore3.swagger.io/api/v3/openapi.json --base-url https://petstore3.swagger.io
     curlgenerator ./openapi.json --authorization-header 'Bearer
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyf
-Q.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJ
+SMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
     curlgenerator ./openapi.json --azure-scope [Some Application ID URI]/.default
 
 ARGUMENTS:
@@ -55,24 +55,24 @@ OPTIONS:
     -l, --log <LOG-FILE>                                       Log to <LOG-FILE>
         --skip-validation                                      Skip validation of OpenAPI Specification file
         --authorization-header <HEADER>                        Authorization header to use for all requests
-        --content-type <CONTENT-TYPE>      application/json    Default Content-Type header to use for all
-                                                               requests
-        --base-url <BASE-URL>                                  Default Base URL to use for all requests. Use
-                                                               this if the OpenAPI spec doesn't explicitly
-                                                               specify a server URL
-        --azure-scope <SCOPE>                                  Azure Entra ID Scope to use for retrieving
-                                                               Access Token for Authorization header
-        --azure-tenant-id <TENANT-ID>                          Azure Entra ID Tenant ID to use for retrieving
-                                                               Access Token for Authorization header
+        --content-type <CONTENT-TYPE>      application/json    Default Content-Type header to use for all requests
+        --base-url <BASE-URL>                                  Default Base URL to use for all requests. Use this if the
+                                                               OpenAPI spec doesn't explicitly specify a server URL
+        --azure-scope <SCOPE>                                  Azure Entra ID Scope to use for retrieving Access Token
+                                                               for Authorization header
+        --azure-tenant-id <TENANT-ID>                          Azure Entra ID Tenant ID to use for retrieving Access
+                                                               Token for Authorization header
     -k, --insecure                                             Skip certificate check
     -i, --stdin                                                Read body from standard input
     -c, --cookie <COOKIE-FILE>                                 Cookie file; enables cookie management
         --curl-opts <CURL-OPTS>                                Additional options passed to curl
+        --pre-command <COMMAND>                                Command to run before curl (e.g. authentication or
+                                                               logging)
         --env-params                                           Get parameters from environment
-        --pwsh-env                                             Prefix PowerShell parameters with "env:". No
-                                                               effect on bash or without --env-params
-        --required-default                                     If a required parameter is missing but has a
-                                                               default value, it can be omitted
+        --pwsh-env                                             Prefix PowerShell parameters with "env:". No effect on
+                                                               bash or without --env-params
+        --required-default                                     If a required parameter is missing but has a default
+                                                               value, it can be omitted
 ```
 
 Running the following:

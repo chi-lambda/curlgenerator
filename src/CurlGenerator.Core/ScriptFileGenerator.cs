@@ -244,6 +244,12 @@ public abstract class ScriptFileGenerator
         AppendSummary(verb, pathItem, operation, code);
         AppendParameters(operation, code);
 
+        if (settings.PreCommand != null)
+        {
+            code.AppendLine(settings.PreCommand);
+            code.AppendLine();
+        }
+
         var routeReplacement = $"${AsVariable("$1")}";
         var route = pathVarRegex.Replace(pathItem.Key, routeReplacement);
         var queryString = CreateQueryString(operation);
