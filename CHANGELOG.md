@@ -13,7 +13,11 @@
 
 **Merged pull requests:**
 
+- Bump Microsoft.OpenApi.YamlReader from 3.5.1 to 3.5.4 [\#325](https://github.com/christianhelle/curlgenerator/pull/325) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Update dependency coverlet.collector to 10.0.1 [\#322](https://github.com/christianhelle/curlgenerator/pull/322) ([renovate[bot]](https://github.com/apps/renovate))
+- Bump Microsoft.SourceLink.GitHub from 10.0.203 to 10.0.300 [\#321](https://github.com/christianhelle/curlgenerator/pull/321) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Update dependency Microsoft.SourceLink.GitHub to 10.0.300 [\#320](https://github.com/christianhelle/curlgenerator/pull/320) ([renovate[bot]](https://github.com/apps/renovate))
+- Update dependency ruby to v4.0.5 [\#319](https://github.com/christianhelle/curlgenerator/pull/319) ([renovate[bot]](https://github.com/apps/renovate))
 - Update dependency Microsoft.NET.Test.Sdk to 18.5.1 [\#318](https://github.com/christianhelle/curlgenerator/pull/318) ([renovate[bot]](https://github.com/apps/renovate))
 - Update dependency Microsoft.NET.Test.Sdk to 18.5.0 [\#313](https://github.com/christianhelle/curlgenerator/pull/313) ([renovate[bot]](https://github.com/apps/renovate))
 - Bump Microsoft.SourceLink.GitHub from 10.0.202 to 10.0.203 [\#312](https://github.com/christianhelle/curlgenerator/pull/312) ([dependabot[bot]](https://github.com/apps/dependabot))
