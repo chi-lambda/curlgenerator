@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.Json;
 using Azure.Core.Diagnostics;
 using CurlGenerator.Core;
 using CurlGenerator.Validation;
@@ -24,6 +25,28 @@ public class GenerateCommand : AsyncCommand<Settings>
             }
 
             var stopwatch = Stopwatch.StartNew();
+
+            if (settings.JsonConfig is not null)
+            {
+                if (!File.Exists(settings.JsonConfig))
+                {
+                    AnsiConsole.MarkupLine($"{Crlf}[red]Error:{Crlf}JSON config file '{settings.JsonConfig}' does not exist.[/]");
+                    return 1;
+                }
+
+                string contents = await File.ReadAllTextAsync(settings.JsonConfig, cancellationToken);
+                Settings? maybeSettings = JsonSerializer.Deserialize<Settings>(contents);
+                if (maybeSettings is not null)
+                {
+                    settings = maybeSettings;
+                    settings.JsonConfig = null;
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine($"{Crlf}[red]Error:{Crlf}Invalid JSON config file '{settings.JsonConfig}'[/]");
+                    return 1;
+                }
+            }
 
             if (string.IsNullOrEmpty(settings.OpenApiPath))
             {

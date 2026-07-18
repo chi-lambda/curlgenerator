@@ -86,4 +86,9 @@ public class Settings : CommandSettings, ISettings
     [CommandOption("--required-default")]
     [DefaultValue(false)]
     public bool RequiredDefault { get; set; }
+
+    [Description("A JSON file containing configuration options")]
+    [CommandOption("--yaml <FILE>")]
+    [DefaultValue(null)]
+    public string? JsonConfig { get; set; }
 }

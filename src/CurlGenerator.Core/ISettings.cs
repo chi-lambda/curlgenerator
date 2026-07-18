@@ -68,4 +68,9 @@ public interface ISettings
     /// Gets a string indicating a command to be run before curl (e.g. a login)
     /// </summary>
     string? PreCommand { get; }
+
+    /// <summary>
+    /// Gets a string indicating a yaml config file
+    /// </summary>
+    string? JsonConfig { get; }
 }
