@@ -16,7 +16,7 @@ public class GenerateCommand : AsyncCommand<Settings>
     {
         try
         {
-            if(context.Remaining.Parsed.Any())
+            if (context.Remaining.Parsed.Any())
             {
                 var extraArgs = context.Remaining.Parsed.Select(k => k.Key);
                 AnsiConsole.MarkupLine($"{Crlf}[red]Error: Unknown parameter(s):{Crlf}{string.Join(Crlf, extraArgs)}[/]");
@@ -218,10 +218,14 @@ public class GenerateCommand : AsyncCommand<Settings>
             configTable.AddRow("🔗 Base URL", $"[cyan]{settings.BaseUrl}[/]");
 
         if (settings.GenerateBashScripts)
+        {
             configTable.AddRow("🐚 Bash Scripts", "[green]✓ Enabled[/]");
+        }
 
         if (settings.SkipValidation)
+        {
             configTable.AddRow("⚠️  Validation", "[yellow]⚠️  Skipped[/]");
+        }
 
         if (!string.IsNullOrWhiteSpace(settings.AuthorizationHeader))
         {
@@ -229,6 +233,11 @@ public class GenerateCommand : AsyncCommand<Settings>
                 ? settings.AuthorizationHeader[..47] + "..."
                 : settings.AuthorizationHeader;
             configTable.AddRow("🔐 Authorization", $"[dim]{authHeader}[/]");
+        }
+
+        if (!string.IsNullOrWhiteSpace(settings.CurlOpts))
+        {
+            configTable.AddRow("  cURL options", $"[cyan]{settings.CurlOpts}[/]");
         }
 
         AnsiConsole.Write(new Panel(configTable)
@@ -247,7 +256,7 @@ public class GenerateCommand : AsyncCommand<Settings>
             .AddColumn(new TableColumn("[bold]Value[/]").LeftAligned());
 
         resultsTable.AddRow("📄 Files Generated", $"[green]{result.Files.Count}[/]");
-        resultsTable.AddRow("⏱️  Duration", $"[green]{elapsed.TotalMilliseconds:F0}ms[/]");
+        resultsTable.AddRow("⏱️ Duration", $"[green]{elapsed.TotalMilliseconds:F0}ms[/]");
         resultsTable.AddRow("📁 Output Location", $"[cyan]{Path.GetFullPath(settings.OutputFolder)}[/]");
 
         if (result.Files.Any())
