@@ -7,6 +7,7 @@ Why?
 * Some architectural rework looks like a good idea. Lots of code duplication. Behavior differs between pwsh and bash.
 * It can handle cookies now.
 * Removed the telemetry. I don't need my cURL generator to phone home.
+* Configuration via JSON
 * I don't know how, but it's apparently a lot faster?
 
 # cURL Request Generator
@@ -38,41 +39,43 @@ EXAMPLES:
     curlgenerator ./openapi.json --bash
     curlgenerator https://petstore.swagger.io/v2/swagger.json
     curlgenerator https://petstore3.swagger.io/api/v3/openapi.json --base-url https://petstore3.swagger.io
-    curlgenerator ./openapi.json --authorization-header 'Bearer
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJ
-SMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+    curlgenerator ./openapi.json --authorization-header 'Bearer 
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJS
+MeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
     curlgenerator ./openapi.json --azure-scope [Some Application ID URI]/.default
 
 ARGUMENTS:
     [URL or input file]    URL or file path to OpenAPI Specification file
 
 OPTIONS:
-                                           DEFAULT
-    -h, --help                                                 Prints help information
-    -v, --version                                              Prints version information
-    -o, --output <OUTPUT>                  ./                  Output directory
-        --bash                                                 Generate Bash scripts
-    -l, --log <LOG-FILE>                                       Log to <LOG-FILE>
-        --skip-validation                                      Skip validation of OpenAPI Specification file
-        --authorization-header <HEADER>                        Authorization header to use for all requests
-        --content-type <CONTENT-TYPE>      application/json    Default Content-Type header to use for all requests
-        --base-url <BASE-URL>                                  Default Base URL to use for all requests. Use this if the
-                                                               OpenAPI spec doesn't explicitly specify a server URL
-        --azure-scope <SCOPE>                                  Azure Entra ID Scope to use for retrieving Access Token
-                                                               for Authorization header
-        --azure-tenant-id <TENANT-ID>                          Azure Entra ID Tenant ID to use for retrieving Access
-                                                               Token for Authorization header
-    -k, --insecure                                             Skip certificate check
-    -i, --stdin                                                Read body from standard input
-    -c, --cookie <COOKIE-FILE>                                 Cookie file; enables cookie management
-        --curl-opts <CURL-OPTS>                                Additional options passed to curl
-        --pre-command <COMMAND>                                Command to run before curl (e.g. authentication or
-                                                               logging)
-        --env-params                                           Get parameters from environment
-        --pwsh-env                                             Prefix PowerShell parameters with "env:". No effect on
-                                                               bash or without --env-params
-        --required-default                                     If a required parameter is missing but has a default
-                                                               value, it can be omitted
+                                           DEFAULT                                                                       
+    -h, --help                                                 Prints help information                                   
+    -v, --version                                              Prints version information                                
+    -o, --output <OUTPUT>                  ./                  Output directory                                          
+        --bash                                                 Generate Bash scripts                                     
+    -l, --log <LOG-FILE>                                       Log to <LOG-FILE>                                         
+        --skip-validation                                      Skip validation of OpenAPI Specification file             
+        --authorization-header <HEADER>                        Authorization header to use for all requests              
+        --content-type <CONTENT-TYPE>      application/json    Default Content-Type header to use for all requests       
+        --base-url <BASE-URL>                                  Default Base URL to use for all requests. Use this if the 
+                                                               OpenAPI spec doesn't explicitly specify a server URL      
+        --azure-scope <SCOPE>                                  Azure Entra ID Scope to use for retrieving Access Token   
+                                                               for Authorization header                                  
+        --azure-tenant-id <TENANT-ID>                          Azure Entra ID Tenant ID to use for retrieving Access     
+                                                               Token for Authorization header                            
+    -k, --insecure                                             Skip certificate check                                    
+    -i, --stdin                                                Read body from standard input                             
+    -c, --cookie <COOKIE-FILE>                                 Cookie file; enables cookie management                    
+        --curl-opts <CURL-OPTS>                                Additional options passed to curl                         
+        --pre-command <COMMAND>                                Command to run before curl (e.g. authentication or        
+                                                               logging)                                                  
+        --env-params                                           Get parameters from environment                           
+        --pwsh-env                                             Prefix PowerShell parameters with "env:". No effect on    
+                                                               bash or without --env-params                              
+        --required-default                                     If a required parameter is missing but has a default      
+                                                               value, it can be omitted                                  
+        --json <FILE>                                          A JSON file containing configuration options              
+        --json-out <FILE>                                      Filename to with the JSON config should be written
 ```
 
 Running the following:
@@ -223,6 +226,10 @@ For PowerShell, you have the choice between normal and environment variables, i.
 
 While insecure connections and cookies are provided as a convenience, the passing of other curl options can be enabled through `--curl-opts`.
 These are inserted as-is into the curl command line.
+
+## JSON configuration
+
+You can export your current parameter set to a JSON file with `--json-out`, then use that instead of the parameters with `--json`.
 
 ## Hints
 
