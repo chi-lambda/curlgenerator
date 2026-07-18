@@ -91,12 +91,12 @@ public class Settings : CommandSettings, ISettings
     [Description("A JSON file containing configuration options")]
     [CommandOption("--json <FILE>")]
     [DefaultValue(null)]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonIgnore]
     public string? JsonConfig { get; set; }
 
     [Description("Filename to with the JSON config should be written")]
     [CommandOption("--json-out <FILE>")]
     [DefaultValue(null)]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonIgnore]
     public string? JsonOut{ get; set; }
 }

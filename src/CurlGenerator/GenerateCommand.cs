@@ -12,6 +12,10 @@ namespace CurlGenerator;
 public class GenerateCommand : AsyncCommand<Settings>
 {
     private static readonly string Crlf = Environment.NewLine;
+    private static readonly JsonSerializerOptions serializerOptions = new()
+    {
+        WriteIndented = true
+    };
 
     protected override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
@@ -28,37 +32,39 @@ public class GenerateCommand : AsyncCommand<Settings>
 
             if (settings.JsonConfig is not null)
             {
+                for (int i = 0; i < context.Arguments.Count; i++)
+                {
+                    if (context.Arguments[i] == "--json")
+                    {
+                        i++;
+                        continue;
+                    }
+
+                    AnsiConsole.MarkupLine($"{Crlf}[red]Error: Cannot mix parameter --json with other parameters.[/]");
+                    return 1;
+                }
+
                 if (!File.Exists(settings.JsonConfig))
                 {
-                    AnsiConsole.MarkupLine($"{Crlf}[red]Error:{Crlf}JSON config file '{settings.JsonConfig}' does not exist.[/]");
+                    AnsiConsole.MarkupLine($"{Crlf}[red]Error: JSON config file '{settings.JsonConfig}' does not exist.[/]");
                     return 1;
                 }
 
                 string contents = await File.ReadAllTextAsync(settings.JsonConfig, cancellationToken);
                 Settings? maybeSettings = JsonSerializer.Deserialize<Settings>(contents);
-                if (maybeSettings is not null)
-                {
-                    settings = maybeSettings;
-                    settings.JsonConfig = null;
-                }
-                else
+                if (maybeSettings is null)
                 {
                     AnsiConsole.MarkupLine($"{Crlf}[red]Error:{Crlf}Invalid JSON config file '{settings.JsonConfig}'[/]");
                     return 1;
                 }
+                
+                settings = maybeSettings;
             }
 
             if (settings.JsonOut is not null)
             {
-                string filename = settings.JsonOut;
-                settings.JsonOut = null;
-                var serializerOptions = new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                };
-
-                string settingsJson = JsonSerializer.Serialize(settings, serializerOptions);
-                await File.WriteAllTextAsync(filename, settingsJson, cancellationToken);
+                string settingsJson = JsonSerializer.Serialize(settings.JsonOut, serializerOptions);
+                await File.WriteAllTextAsync(settings.JsonOut, settingsJson, cancellationToken);
             }
 
             if (string.IsNullOrEmpty(settings.OpenApiPath))
