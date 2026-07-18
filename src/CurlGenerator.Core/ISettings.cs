@@ -70,7 +70,12 @@ public interface ISettings
     string? PreCommand { get; }
 
     /// <summary>
-    /// Gets a string indicating a yaml config file
+    /// Gets a string indicating a JSON config file
     /// </summary>
     string? JsonConfig { get; }
+
+    /// <summary>
+    /// Gets a string indicating the file to which the JSON config should be written
+    /// </summary>
+    string? JsonOut{ get; }
 }

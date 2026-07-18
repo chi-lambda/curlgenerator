@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 using CurlGenerator.Core;
 using Spectre.Console.Cli;
 
@@ -88,7 +89,14 @@ public class Settings : CommandSettings, ISettings
     public bool RequiredDefault { get; set; }
 
     [Description("A JSON file containing configuration options")]
-    [CommandOption("--yaml <FILE>")]
+    [CommandOption("--json <FILE>")]
     [DefaultValue(null)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? JsonConfig { get; set; }
+
+    [Description("Filename to with the JSON config should be written")]
+    [CommandOption("--json-out <FILE>")]
+    [DefaultValue(null)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? JsonOut{ get; set; }
 }

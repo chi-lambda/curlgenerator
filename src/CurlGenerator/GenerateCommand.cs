@@ -48,6 +48,19 @@ public class GenerateCommand : AsyncCommand<Settings>
                 }
             }
 
+            if (settings.JsonOut is not null)
+            {
+                string filename = settings.JsonOut;
+                settings.JsonOut = null;
+                var serializerOptions = new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                };
+
+                string settingsJson = JsonSerializer.Serialize(settings, serializerOptions);
+                await File.WriteAllTextAsync(filename, settingsJson, cancellationToken);
+            }
+
             if (string.IsNullOrEmpty(settings.OpenApiPath))
             {
                 AnsiConsole.MarkupLine($"{Crlf}[red]Error:{Crlf}No OpenAPI file specified.[/]");
