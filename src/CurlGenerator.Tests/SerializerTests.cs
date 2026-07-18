@@ -10,6 +10,8 @@ public class SerializerTests
     public void Can_Serialize_Settings(
         Settings settings)
     {
+        settings.JsonConfig = null;
+        settings.JsonOut = null;
         Serializer
             .Serialize(settings)
             .Should()
@@ -20,6 +22,8 @@ public class SerializerTests
     public void Can_Deserialize_Settings(
         Settings settings)
     {
+        settings.JsonConfig = null;
+        settings.JsonOut = null;
         var json = Serializer.Serialize(settings);
         Serializer
             .Deserialize<Settings>(json)
@@ -31,6 +35,8 @@ public class SerializerTests
     public void Deserialize_Is_Case_Insensitive(
         Settings settings)
     {
+        settings.JsonConfig = null;
+        settings.JsonOut = null;
         var json = Serializer.Serialize(settings);
         foreach (var property in typeof(Settings).GetProperties())
         {
