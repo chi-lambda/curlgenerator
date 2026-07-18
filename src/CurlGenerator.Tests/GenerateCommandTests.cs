@@ -44,6 +44,8 @@ public class GenerateCommandTests
         var json = EmbeddedResources.GetSwaggerPetstore(version);
         settings.OpenApiPath = await TestFile.CreateSwaggerFile(json, filename);
         settings.LogFile = null;
+        settings.JsonConfig = null;
+        settings.JsonOut = null;
 
         (await InvokeExecuteAsync(sut, context, settings, CancellationToken.None))
             .Should()
@@ -69,6 +71,8 @@ public class GenerateCommandTests
         settings.OpenApiPath = await TestFile.CreateSwaggerFile(json, manifestResourceStreamName);
         settings.LogFile = null;
         settings.SkipValidation = true;
+        settings.JsonConfig = null;
+        settings.JsonOut = null;
 
         (await InvokeExecuteAsync(sut, context, settings, CancellationToken.None))
             .Should()
@@ -93,6 +97,8 @@ public class GenerateCommandTests
         var json = EmbeddedResources.GetStringFromEmbeddedResource(manifestResourceStreamName);
         settings.OpenApiPath = await TestFile.CreateSwaggerFile(json, manifestResourceStreamName);
         settings.SkipValidation = false;
+        settings.JsonConfig = null;
+        settings.JsonOut = null;
 
         (await InvokeExecuteAsync(sut, context, settings, CancellationToken.None))
             .Should()
@@ -116,6 +122,8 @@ public class GenerateCommandTests
     {
         settings.OpenApiPath = url;
         settings.LogFile = null;
+        settings.JsonConfig = null;
+        settings.JsonOut = null;
 
         (await InvokeExecuteAsync(sut, context, settings, CancellationToken.None))
             .Should()
